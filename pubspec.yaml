@@ -2,7 +2,7 @@ name: carja_driver
 description: CarJa Driver App
 
 environment:
-  sdk: '^3.10.0'
+  sdk: '>= 3.0.0'
 
 dependencies:
   flutter:
