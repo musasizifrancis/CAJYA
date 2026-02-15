@@ -1,0 +1,27 @@
+name: carja_driver
+description: CarJa Driver App
+
+environment:
+  sdk: '^3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  provider: ^6.0.0
+  dio: ^5.0.0
+  geolocator: ^9.0.2
+  camera: ^0.10.0
+  image_picker: ^1.0.0
+  google_maps_flutter: ^2.2.0
+  supabase_flutter: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
