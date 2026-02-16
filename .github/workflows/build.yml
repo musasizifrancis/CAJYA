@@ -12,6 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Setup Java
       uses: actions/setup-java@v3
@@ -23,39 +25,21 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.16.0'
+        cache: false
 
-    - name: Verify Flutter
-      run: flutter --version && flutter doctor
+    - name: Clean previous builds
+      run: |
+        flutter clean
+        rm -rf pubspec.lock
 
     - name: Install dependencies
       run: flutter pub get --verbose
-      continue-on-error: true
-
-    - name: Check pub get status
-      run: |
-        if [ -d ".dart_tool" ]; then
-          echo "✅ Dependencies installed successfully"
-        else
-          echo "⚠️ Dependencies may not have installed"
-          flutter pub get
-        fi
 
     - name: Build APK
-      run: flutter build apk --release -v
-      continue-on-error: true
-
-    - name: Check build output
-      run: |
-        if [ -f "build/app/outputs/apk/release/app-release.apk" ]; then
-          echo "✅ APK built successfully"
-          ls -lh build/app/outputs/apk/release/
-        else
-          echo "⚠️ APK not found"
-        fi
+      run: flutter build apk --release --verbose
 
     - name: Upload APK as Artifact
       uses: actions/upload-artifact@v4
-      if: always()
       with:
         name: app-release-apk
         path: build/app/outputs/apk/release/app-release.apk
