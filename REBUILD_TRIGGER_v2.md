@@ -1,0 +1,1 @@
+Rebuild trigger - app/build.gradle fixed
