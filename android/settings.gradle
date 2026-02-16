@@ -4,20 +4,12 @@ pluginManagement {
         google()
         mavenCentral()
     }
-
-    resolutionStrategy {
-        eachPlugin {
-            if (it.requested.id.id == 'dev.flutter.flutter-gradle-plugin') {
-                it.useModule("dev.flutter:flutter_gradle_plugin:${it.requested.version}")
-            }
-        }
-    }
 }
 
 plugins {
-    id "dev.flutter.flutter-gradle-plugin" version "1.0.0" apply false
-    id "com.android.application" version "8.1.0" apply false
-    id "org.jetbrains.kotlin.android" version "1.9.10" apply false
+    id "com.android.application" version "7.4.2" apply false
+    id "com.android.library" version "7.4.2" apply false
+    id "org.jetbrains.kotlin.android" version "1.8.22" apply false
 }
 
 include ":app"
