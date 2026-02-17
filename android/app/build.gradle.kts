@@ -5,9 +5,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cajya"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    namespace = "com.example.carja_driver"
+    compileSdk = 34
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -15,18 +14,15 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "11"
     }
 
     defaultConfig {
-        applicationId = "com.example.cajya"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-
-        // Enable multidex if needed
-        multiDexEnabled = true
+        applicationId = "com.example.carja_driver"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
     }
 
     buildTypes {
@@ -36,11 +32,7 @@ android {
     }
 }
 
-flutter {
-    source = "../.."
-}
-
 dependencies {
+    implementation("androidx.core:core:1.10.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.multidex:multidex:2.0.1")
 }
