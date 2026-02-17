@@ -7,37 +7,47 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.16.0'
-          cache: true
-
-      - name: Flutter version
-        run: flutter --version
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze --no-fatal-infos || true
-
-      - name: Build APK (Debug)
-        run: flutter build apk --debug --verbose
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: cajya-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
-          retention-days: 7
+    - uses: actions/checkout@v3
+    
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        cache: true
+    
+    - name: Disable Analytics
+      run: flutter config --no-analytics
+    
+    - name: Get Dependencies
+      run: flutter pub get 2>&1 | tee pub_get.log
+    
+    - name: Flutter Analyze
+      run: flutter analyze 2>&1 | tee flutter_analyze.log || true
+    
+    - name: Build APK
+      run: flutter build apk --debug --verbose 2>&1 | tee build_apk.log
+    
+    - name: Upload Build Log
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-logs
+        path: |
+          pub_get.log
+          flutter_analyze.log
+          build_apk.log
+    
+    - name: Upload APK
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: cajya-debug-apk
+        path: build/app/outputs/flutter-apk/app-debug.apk
