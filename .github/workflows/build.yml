@@ -12,6 +12,8 @@ jobs:
         with:
           flutter-version: '3.16.0'
       
+      - run: sed -i 's/^name: CAJYA$/name: cajya/' pubspec.yaml
+      
       - run: rm -rf android
       - run: flutter create --platforms android .
       
@@ -22,4 +24,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: flutter-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.aputs/flutter-apk/app-release.apk
