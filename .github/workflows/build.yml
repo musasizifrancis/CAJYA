@@ -21,7 +21,8 @@ jobs:
 
       - name: Fix SDK constraint for Docker (Dart 2.19)
         run: |
-          sed -i 's/sdk: "[^"]*"/sdk: ">=2.19.0 <4.0.0"/' pubspec.yaml
+          sed -i "s/sdk: '[^']*'/sdk: '>=2.19.0 <4.0.0'/" pubspec.yaml
+          cat pubspec.yaml | grep "sdk:"
           cat pubspec.yaml | grep "sdk:"
 
       - name: Get dependencies
