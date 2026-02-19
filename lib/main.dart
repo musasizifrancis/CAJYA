@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
         '/brand-auth': (context) => const BrandAuthScreen(),
         '/email-verification': (context) => const EmailVerificationScreen(),
         '/driver-profile': (context) => const driver.DriverProfileScreen(),
-        '/vehicle-registration': (context) => VehicleRegistrationScreen(),
+        '/vehicle-registration': (context) => VehicleDetailsScreen(),
         '/brand-profile': (context) => const brand.DriverProfileScreen(),
         '/dashboard': (context) => DashboardScreen(email: '', userRole: 'driver'),
         '/brand-dashboard': (context) => BrandDashboardScreen(email: '', userRole: 'brand'),
