@@ -50,11 +50,11 @@ class MyApp extends StatelessWidget {
         '/brand-auth': (context) => const BrandAuthScreen(),
         '/email-verification': (context) => const EmailVerificationScreen(),
         '/driver-profile': (context) => const driver.DriverProfileScreen(),
-        '/vehicle-registration': (context) => const VehicleRegistrationScreen(),
-        '/brand-profile': (context) => const brand.DriverProfileScreen(), // Note: file actually contains DriverProfileScreen
-        '/dashboard': (context) => const DashboardScreen(email: '', userRole: 'driver'),
-        '/brand-dashboard': (context) => const BrandDashboardScreen(email: '', userRole: 'brand'),
-        '/withdrawal': (context) => const WithdrawalScreen(email: '', userRole: 'driver'),
+        '/vehicle-registration': (context) => VehicleRegistrationScreen(),
+        '/brand-profile': (context) => const brand.DriverProfileScreen(),
+        '/dashboard': (context) => DashboardScreen(email: '', userRole: 'driver'),
+        '/brand-dashboard': (context) => BrandDashboardScreen(email: '', userRole: 'brand'),
+        '/withdrawal': (context) => WithdrawalScreen(email: '', userRole: 'driver'),
         '/brand-campaign': (context) => const BrandCampaignCreationScreen(),
       },
     );
