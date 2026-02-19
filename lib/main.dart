@@ -13,6 +13,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
 import 'screens/withdrawal_screen.dart';
 import 'screens/brand_campaign_creation_screen.dart';
+import 'screens/supabase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,20 +43,59 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const SplashScreen(),
-      routes: {
-        '/splash': (context) => const SplashScreen(),
-        '/onboarding': (context) => const OnboardingScreen(),
-        '/role-selection': (context) => const RoleSelectionScreen(),
-        '/driver-auth': (context) => const DriverAuthScreen(),
-        '/brand-auth': (context) => const BrandAuthScreen(),
-        '/email-verification': (context) => const EmailVerificationScreen(),
-        '/driver-profile': (context) => const driver.DriverProfileScreen(),
-        '/vehicle-registration': (context) => VehicleDetailsScreen(),
-        '/brand-profile': (context) => const brand.DriverProfileScreen(),
-        '/dashboard': (context) => DashboardScreen(email: '', userRole: 'driver'),
-        '/brand-dashboard': (context) => BrandDashboardScreen(email: '', userRole: 'brand'),
-        '/withdrawal': (context) => WithdrawalScreen(email: '', userRole: 'driver'),
-        '/brand-campaign': (context) => const BrandCampaignCreationScreen(),
+      onGenerateRoute: (settings) {
+        // Extract arguments from route settings
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final email = args['email'] as String? ?? '';
+        final userRole = args['userRole'] as String? ?? 'driver';
+
+        switch (settings.name) {
+          case '/splash':
+            return MaterialPageRoute(builder: (_) => const SplashScreen());
+          case '/onboarding':
+            return MaterialPageRoute(builder: (_) => const OnboardingScreen());
+          case '/role-selection':
+            return MaterialPageRoute(builder: (_) => const RoleSelectionScreen());
+          case '/driver-auth':
+            return MaterialPageRoute(builder: (_) => const DriverAuthScreen());
+          case '/brand-auth':
+            return MaterialPageRoute(builder: (_) => const BrandAuthScreen());
+          case '/email-verification':
+            return MaterialPageRoute(builder: (_) => const EmailVerificationScreen());
+          case '/verification':
+            return MaterialPageRoute(builder: (_) => const EmailVerificationScreen());
+          case '/driver-profile':
+            return MaterialPageRoute(builder: (_) => const driver.DriverProfileScreen());
+          case '/vehicle-registration':
+            return MaterialPageRoute(builder: (_) => VehicleDetailsScreen());
+          case '/brand-profile':
+            return MaterialPageRoute(builder: (_) => const brand.DriverProfileScreen());
+          case '/dashboard':
+            return MaterialPageRoute(
+              builder: (_) => DashboardScreen(
+                email: email,
+                userRole: userRole,
+              ),
+            );
+          case '/brand-dashboard':
+            return MaterialPageRoute(
+              builder: (_) => BrandDashboardScreen(
+                email: email,
+                userRole: userRole,
+              ),
+            );
+          case '/withdrawal':
+            return MaterialPageRoute(
+              builder: (_) => WithdrawalScreen(
+                email: email,
+                userRole: userRole,
+              ),
+            );
+          case '/brand-campaign':
+            return MaterialPageRoute(builder: (_) => const BrandCampaignCreationScreen());
+          default:
+            return MaterialPageRoute(builder: (_) => const SplashScreen());
+        }
       },
     );
   }
