@@ -1,3 +1,4 @@
+# Fresh trigger for GitHub Actions build
 name: cajya_app
 description: CAJYA app
 version: 1.0.0+1
