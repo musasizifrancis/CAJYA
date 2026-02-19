@@ -6,9 +6,9 @@ import 'screens/role_selection_screen.dart';
 import 'screens/driver_auth_screen.dart';
 import 'screens/brand_auth_screen.dart';
 import 'screens/email_verification_screen.dart';
-import 'screens/driver_profile_screen.dart' as driver_screens;
+import 'screens/driver_profile_screen.dart';
 import 'screens/vehicle_registration_screen.dart';
-import 'screens/brand_profile_screen.dart' as brand_screens;
+import 'screens/brand_profile_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
 import 'screens/withdrawal_screen.dart';
@@ -42,6 +42,21 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const SplashScreen(),
+      routes: {
+        '/splash': (context) => const SplashScreen(),
+        '/onboarding': (context) => const OnboardingScreen(),
+        '/role-selection': (context) => const RoleSelectionScreen(),
+        '/driver-auth': (context) => const DriverAuthScreen(),
+        '/brand-auth': (context) => const BrandAuthScreen(),
+        '/email-verification': (context) => const EmailVerificationScreen(),
+        '/driver-profile': (context) => const DriverProfileScreen(),
+        '/vehicle-registration': (context) => const VehicleRegistrationScreen(),
+        '/brand-profile': (context) => const BrandProfileScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
+        '/brand-dashboard': (context) => const BrandDashboardScreen(),
+        '/withdrawal': (context) => const WithdrawalScreen(),
+        '/brand-campaign': (context) => const BrandCampaignCreationScreen(),
+      },
     );
   }
 }
