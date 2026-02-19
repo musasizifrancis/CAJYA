@@ -6,9 +6,9 @@ import 'screens/role_selection_screen.dart';
 import 'screens/driver_auth_screen.dart';
 import 'screens/brand_auth_screen.dart';
 import 'screens/email_verification_screen.dart';
-import 'screens/driver_profile_screen.dart' as driver_profile;
+import 'screens/driver_profile_screen.dart' as driver;
 import 'screens/vehicle_registration_screen.dart';
-import 'screens/brand_profile_screen.dart' as brand_profile;
+import 'screens/brand_profile_screen.dart' as brand;
 import 'screens/dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
 import 'screens/withdrawal_screen.dart';
@@ -49,12 +49,12 @@ class MyApp extends StatelessWidget {
         '/driver-auth': (context) => const DriverAuthScreen(),
         '/brand-auth': (context) => const BrandAuthScreen(),
         '/email-verification': (context) => const EmailVerificationScreen(),
-        '/driver-profile': (context) => driver_profile.DriverProfileScreen(),
-        '/vehicle-registration': (context) => VehicleRegistrationScreen(),
-        '/brand-profile': (context) => brand_profile.BrandProfileScreen(),
-        '/dashboard': (context) => DashboardScreen(email: ''),
-        '/brand-dashboard': (context) => BrandDashboardScreen(email: ''),
-        '/withdrawal': (context) => WithdrawalScreen(email: ''),
+        '/driver-profile': (context) => const driver.DriverProfileScreen(),
+        '/vehicle-registration': (context) => const VehicleRegistrationScreen(),
+        '/brand-profile': (context) => const brand.DriverProfileScreen(), // Note: file actually contains DriverProfileScreen
+        '/dashboard': (context) => const DashboardScreen(email: '', userRole: 'driver'),
+        '/brand-dashboard': (context) => const BrandDashboardScreen(email: '', userRole: 'brand'),
+        '/withdrawal': (context) => const WithdrawalScreen(email: '', userRole: 'driver'),
         '/brand-campaign': (context) => const BrandCampaignCreationScreen(),
       },
     );
