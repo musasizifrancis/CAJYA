@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/role_selection_screen.dart';
@@ -13,8 +14,19 @@ import 'screens/brand_dashboard_screen.dart';
 import 'screens/withdrawal_screen.dart';
 import 'screens/brand_campaign_creation_screen.dart';
 
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    await Supabase.initialize(
+      url: 'https://nrwfehkdvaujcypvddhq.supabase.co',
+      anonKey: 'sb_publishable_F7T3fQPmz6Zq1bFK25W4XQ_UP8ulQqG',
+    );
+    print('✅ Supabase initialized successfully');
+  } catch (e) {
+    print('❌ Supabase initialization failed: $e');
+  }
+  
   runApp(const MyApp());
 }
 
