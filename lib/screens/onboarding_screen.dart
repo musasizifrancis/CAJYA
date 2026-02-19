@@ -1,52 +1,170 @@
 import 'package:flutter/material.dart';
 
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  int _currentPage = 0;
+
+  final List<Map<String, String>> _onboardingData = [
+    {
+      'title': 'Welcome to CAJYA',
+      'description': 'Connect with brands and earn money by displaying ads on your vehicle',
+      'icon': 'directions_car',
+    },
+    {
+      'title': 'Easy Setup',
+      'description': 'Complete your profile and vehicle details in minutes',
+      'icon': 'build',
+    },
+    {
+      'title': 'Start Earning',
+      'description': 'Get matched with brands and start earning immediately',
+      'icon': 'paid',
+    },
+  ];
+
+  void _nextPage() {
+    if (_currentPage < _onboardingData.length - 1) {
+      setState(() {
+        _currentPage++;
+      });
+    } else {
+      Navigator.pushReplacementNamed(context, '/role-selection');
+    }
+  }
+
+  void _skip() {
+    Navigator.pushReplacementNamed(context, '/role-selection');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF001a4d),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Welcome to CarJa',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF001a4d),
-                    ),
-                textAlign: TextAlign.center,
+        child: Column(
+          children: [
+            // Skip button
+            Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextButton(
+                  onPressed: _skip,
+                  child: const Text(
+                    'Skip',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                'Earn money by advertising brands on your vehicle',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 60),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/role-selection');
+            ),
+            // Content
+            Expanded(
+              child: PageView.builder(
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF001a4d),
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                ),
-                child: const Text(
-                  'Get Started',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                children: _onboardingData.map((data) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _getIconData(data['icon']!),
+                          size: 80,
+                          color: Colors.blue,
+                        ),
+                        const SizedBox(height: 30),
+                        Text(
+                          data['title']!,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            data['description']!,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            // Dots indicator
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _onboardingData.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == index ? 12 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentPage == index
+                        ? Colors.blue
+                        : Colors.white30,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 30),
+            // Next button
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: ElevatedButton(
+                onPressed: _nextPage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 48,
+                    vertical: 16,
+                  ),
+                ),
+                child: Text(
+                  _currentPage == _onboardingData.length - 1
+                      ? 'Get Started'
+                      : 'Next',
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );
+  }
+
+  IconData _getIconData(String iconName) {
+    switch (iconName) {
+      case 'directions_car':
+        return Icons.directions_car;
+      case 'build':
+        return Icons.build;
+      case 'paid':
+        return Icons.paid;
+      default:
+        return Icons.star;
+    }
   }
 }

@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    await Future.delayed(const Duration(milliseconds: 2000), () {});
+    await Future.delayed(const Duration(milliseconds: 3000), () {});
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/onboarding');
     }
@@ -29,20 +29,30 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
+            // Logo image
+            Image.asset(
+              'assets/images/logo.png',
+              width: 150,
+              height: 150,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.error, size: 150, color: Colors.white);
+              },
+            ),
+            const SizedBox(height: 30),
             Text(
-              'CarJa',
+              'CAJYA',
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                  ),
+              ),
             ),
             const SizedBox(height: 20),
             Text(
               'Driver Advertising App',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white70,
-                  ),
+              ),
             ),
           ],
         ),
