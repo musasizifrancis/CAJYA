@@ -11,42 +11,80 @@ class SupabaseService {
 
   final supabase = Supabase.instance.client;
 
-  // Sign in with email and password
-  Future<String?> signIn(String email, String password) async {
+  // Sign in with email and password - returns Map with success/error
+  Future<Map<String, dynamic>> signIn({
+    required String email,
+    required String password,
+  }) async {
     try {
       final response = await supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      return response.user?.id;
+      return {
+        'success': true,
+        'user': response.user?.id,
+        'email': response.user?.email,
+      };
+    } on AuthException catch (e) {
+      return {
+        'success': false,
+        'error': e.message,
+      };
     } catch (e) {
-      print('Sign in error: $e');
-      rethrow;
+      return {
+        'success': false,
+        'error': 'An unexpected error occurred: $e',
+      };
     }
   }
 
-  // Sign up with email and password
-  Future<String?> signUp(String email, String password, String userRole) async {
+  // Sign up with email and password - returns Map with success/error
+  Future<Map<String, dynamic>> signUp({
+    required String email,
+    required String password,
+    required String fullName,
+    required String userRole,
+  }) async {
     try {
       final response = await supabase.auth.signUp(
         email: email,
         password: password,
-        data: {'user_role': userRole},
+        data: {
+          'full_name': fullName,
+          'user_role': userRole,
+        },
       );
-      return response.user?.id;
+      return {
+        'success': true,
+        'user': response.user?.id,
+        'email': response.user?.email,
+      };
+    } on AuthException catch (e) {
+      return {
+        'success': false,
+        'error': e.message,
+      };
     } catch (e) {
-      print('Sign up error: $e');
-      rethrow;
+      return {
+        'success': false,
+        'error': 'An unexpected error occurred: $e',
+      };
     }
   }
 
   // Sign out
-  Future<void> signOut() async {
+  Future<Map<String, dynamic>> signOut() async {
     try {
       await supabase.auth.signOut();
+      return {
+        'success': true,
+      };
     } catch (e) {
-      print('Sign out error: $e');
-      rethrow;
+      return {
+        'success': false,
+        'error': 'Sign out failed: $e',
+      };
     }
   }
 
@@ -66,26 +104,36 @@ class SupabaseService {
   }
 
   // Update user metadata
-  Future<void> updateUserMetadata(Map<String, dynamic> metadata) async {
+  Future<Map<String, dynamic>> updateUserMetadata(Map<String, dynamic> metadata) async {
     try {
       await supabase.auth.updateUser(
         UserAttributes(
           data: metadata,
         ),
       );
+      return {
+        'success': true,
+      };
     } catch (e) {
-      print('Update user error: $e');
-      rethrow;
+      return {
+        'success': false,
+        'error': 'Update failed: $e',
+      };
     }
   }
 
-  // Delete user account
-  Future<void> deleteAccount() async {
+  // Password reset
+  Future<Map<String, dynamic>> resetPassword({required String email}) async {
     try {
-      await supabase.rpc('delete_user');
+      await supabase.auth.resetPasswordForEmail(email);
+      return {
+        'success': true,
+      };
     } catch (e) {
-      print('Delete account error: $e');
-      rethrow;
+      return {
+        'success': false,
+        'error': 'Reset failed: $e',
+      };
     }
   }
 }
