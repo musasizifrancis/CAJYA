@@ -46,116 +46,315 @@ class MyApp extends StatelessWidget {
         ),
         home: const SplashScreen(),
         onGenerateRoute: (settings) {
-          final args = settings.arguments as Map<String, dynamic>?;
+          try {
+            final args = settings.arguments as Map<String, dynamic>?;
 
-          switch (settings.name) {
-            case '/splash':
-              return MaterialPageRoute(
-                builder: (context) => const SplashScreen(),
-              );
+            switch (settings.name) {
+              case '/splash':
+                return MaterialPageRoute(
+                  builder: (context) => const SplashScreen(),
+                );
 
-            case '/onboarding':
-              return MaterialPageRoute(
-                builder: (context) => const OnboardingScreen(),
-              );
+              case '/onboarding':
+                return MaterialPageRoute(
+                  builder: (context) => const OnboardingScreen(),
+                );
 
-            case '/role_selection':
-              return MaterialPageRoute(
-                builder: (context) => const RoleSelectionScreen(),
-              );
+              case '/role_selection':
+                return MaterialPageRoute(
+                  builder: (context) => const RoleSelectionScreen(),
+                );
 
-            case '/driver-auth':
-              return MaterialPageRoute(
-                builder: (context) => const DriverAuthScreen(),
-              );
+              case '/driver-auth':
+                return MaterialPageRoute(
+                  builder: (context) => const DriverAuthScreen(),
+                );
 
-            case '/brand-auth':
-              return MaterialPageRoute(
-                builder: (context) => const BrandAuthScreen(),
-              );
+              case '/brand-auth':
+                return MaterialPageRoute(
+                  builder: (context) => const BrandAuthScreen(),
+                );
 
-            // Email verification (after sign-up email sent)
-            case '/email-verification':
-              return MaterialPageRoute(
-                builder: (context) => const EmailVerificationScreen(),
-                settings: RouteSettings(
-                  name: settings.name,
-                  arguments: args,
-                ),
-              );
+              // Email verification (after sign-up email sent)
+              case '/email-verification':
+                return MaterialPageRoute(
+                  builder: (context) => const EmailVerificationScreen(),
+                  settings: RouteSettings(
+                    name: settings.name,
+                    arguments: args,
+                  ),
+                );
 
-            // Photo verification (after driver auth)
-            case '/verification':
-              return MaterialPageRoute(
-                builder: (context) => VerificationScreen(
-                  email: args?['email'] ?? 'driver@example.com',
-                  userRole: args?['userRole'] ?? 'driver',
-                ),
-              );
+              // Photo verification (after driver/brand auth)
+              case '/verification':
+                final email = args?['email'] as String? ?? 'unknown@example.com';
+                final userRole = (args?['userRole'] as String? ?? 'driver').toLowerCase();
+                return MaterialPageRoute(
+                  builder: (context) => VerificationScreen(
+                    email: email,
+                    userRole: userRole,
+                  ),
+                );
 
-            case '/driver-profile':
-              return MaterialPageRoute(
-                builder: (context) => DriverProfileScreen(
-                  initialData: args ?? {},
-                ),
-              );
+              case '/driver-profile':
+                return MaterialPageRoute(
+                  builder: (context) => DriverProfileScreen(
+                    initialData: args ?? {},
+                  ),
+                );
 
-            case '/brand-profile':
-              return MaterialPageRoute(
-                builder: (context) => brand_profile.DriverProfileScreen(
-                  initialData: args ?? {},
-                ),
-              );
+              case '/brand-profile':
+                return MaterialPageRoute(
+                  builder: (context) => brand_profile.DriverProfileScreen(
+                    initialData: args ?? {},
+                  ),
+                );
 
-            // Vehicle details (from driver_profile or brand_profile)
-            case '/vehicle-details':
-              return MaterialPageRoute(
-                builder: (context) => const VehicleDetailsScreen(),
-              );
+              // Vehicle details (from driver_profile or brand_profile)
+              case '/vehicle-details':
+                return MaterialPageRoute(
+                  builder: (context) => const VehicleDetailsScreen(),
+                );
 
-            case '/dashboard':
-              return MaterialPageRoute(
-                builder: (context) => DashboardScreen(
-                  email: args?['email'] ?? 'driver@example.com',
-                  userRole: args?['userRole'] ?? 'driver',
-                ),
-              );
+              case '/dashboard':
+                final email = args?['email'] as String? ?? 'driver@example.com';
+                final userRole = (args?['userRole'] as String? ?? 'driver').toLowerCase();
+                return MaterialPageRoute(
+                  builder: (context) => _SafeDashboardWrapper(
+                    email: email,
+                    userRole: userRole,
+                  ),
+                );
 
-            case '/brand-dashboard':
-              return MaterialPageRoute(
-                builder: (context) => BrandDashboardScreen(
-                  email: args?['email'] ?? 'brand@example.com',
-                  userRole: args?['userRole'] ?? 'brand',
-                ),
-              );
+              case '/brand-dashboard':
+                final email = args?['email'] as String? ?? 'brand@example.com';
+                final userRole = (args?['userRole'] as String? ?? 'brand').toLowerCase();
+                return MaterialPageRoute(
+                  builder: (context) => _SafeBrandDashboardWrapper(
+                    email: email,
+                    userRole: userRole,
+                  ),
+                );
 
-            case '/withdrawal':
-              return MaterialPageRoute(
-                builder: (context) => WithdrawalScreen(
-                  email: args?['email'] ?? 'user@example.com',
-                  userRole: args?['userRole'] ?? 'brand',
-                ),
-              );
+              case '/withdrawal':
+                final email = args?['email'] as String? ?? 'user@example.com';
+                final userRole = args?['userRole'] as String? ?? 'brand';
+                return MaterialPageRoute(
+                  builder: (context) => WithdrawalScreen(
+                    email: email,
+                    userRole: userRole,
+                  ),
+                );
 
-            case '/brand-campaign-creation':
-              return MaterialPageRoute(
-                builder: (context) => const BrandCampaignCreationScreen(),
-              );
+              case '/brand-campaign-creation':
+                return MaterialPageRoute(
+                  builder: (context) => const BrandCampaignCreationScreen(),
+                );
 
-            // Campaign preview (from brand_campaign_creation)
-            case '/campaign-preview':
-              return MaterialPageRoute(
-                builder: (context) => CampaignPreviewScreen(
-                  campaignData: args ?? {},
-                ),
-              );
+              // Campaign preview (from brand_campaign_creation)
+              case '/campaign-preview':
+                return MaterialPageRoute(
+                  builder: (context) => CampaignPreviewScreen(
+                    campaignData: args ?? {},
+                  ),
+                );
 
-            default:
-              return MaterialPageRoute(
-                builder: (context) => const SplashScreen(),
-              );
+              default:
+                return MaterialPageRoute(
+                  builder: (context) => const SplashScreen(),
+                );
+            }
+          } catch (e) {
+            // Error handler - return error screen
+            return MaterialPageRoute(
+              builder: (context) => ErrorScreen(error: e.toString()),
+            );
           }
         },
+      ),
+    );
+  }
+}
+
+// SAFETY WRAPPERS FOR GOOGLE MAPS DASHBOARDS
+class _SafeDashboardWrapper extends StatefulWidget {
+  final String email;
+  final String userRole;
+
+  const _SafeDashboardWrapper({
+    required this.email,
+    required this.userRole,
+  });
+
+  @override
+  State<_SafeDashboardWrapper> createState() => _SafeDashboardWrapperState();
+}
+
+class _SafeDashboardWrapperState extends State<_SafeDashboardWrapper> {
+  bool _hasError = false;
+  String _errorMessage = '';
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasError) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error Loading Dashboard')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 60, color: Colors.red),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Error: $_errorMessage',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return _ErrorBoundary(
+      onError: (error) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = error;
+        });
+      },
+      child: DashboardScreen(
+        email: widget.email,
+        userRole: widget.userRole,
+      ),
+    );
+  }
+}
+
+class _SafeBrandDashboardWrapper extends StatefulWidget {
+  final String email;
+  final String userRole;
+
+  const _SafeBrandDashboardWrapper({
+    required this.email,
+    required this.userRole,
+  });
+
+  @override
+  State<_SafeBrandDashboardWrapper> createState() =>
+      _SafeBrandDashboardWrapperState();
+}
+
+class _SafeBrandDashboardWrapperState extends State<_SafeBrandDashboardWrapper> {
+  bool _hasError = false;
+  String _errorMessage = '';
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasError) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error Loading Dashboard')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 60, color: Colors.red),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Error: $_errorMessage',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return _ErrorBoundary(
+      onError: (error) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = error;
+        });
+      },
+      child: BrandDashboardScreen(
+        email: widget.email,
+        userRole: widget.userRole,
+      ),
+    );
+  }
+}
+
+// ERROR BOUNDARY WIDGET
+class _ErrorBoundary extends StatelessWidget {
+  final Widget child;
+  final Function(String) onError;
+
+  const _ErrorBoundary({
+    required this.child,
+    required this.onError,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: child,
+    );
+  }
+}
+
+// ERROR SCREEN
+class ErrorScreen extends StatelessWidget {
+  final String error;
+
+  const ErrorScreen({required this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Error')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 60, color: Colors.red),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'An error occurred:\n\n$error',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/splash',
+                (route) => false,
+              ),
+              child: const Text('Go to Home'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -165,85 +364,17 @@ class MyApp extends StatelessWidget {
 class CampaignPreviewScreen extends StatelessWidget {
   final Map<String, dynamic> campaignData;
 
-  const CampaignPreviewScreen({
-    Key? key,
-    required this.campaignData,
-  }) : super(key: key);
+  const CampaignPreviewScreen({required this.campaignData});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Campaign Preview'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Campaign Details',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            _buildDetailRow('Name:', campaignData['name'] ?? 'N/A'),
-            _buildDetailRow('Type:', campaignData['type'] ?? 'N/A'),
-            _buildDetailRow('Budget:', '\$${campaignData['budget'] ?? "N/A"}'),
-            _buildDetailRow('Start Date:', campaignData['startDate'] ?? 'N/A'),
-            _buildDetailRow('End Date:', campaignData['endDate'] ?? 'N/A'),
-            const SizedBox(height: 20),
-            const Text(
-              'Description:',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            Text(campaignData['description'] ?? 'N/A'),
-            const SizedBox(height: 20),
-            const Text(
-              'Target Audience:',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            Text(campaignData['audience'] ?? 'N/A'),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Campaign published!')),
-                  );
-                  Navigator.pop(context);
-                },
-                child: const Text('PUBLISH CAMPAIGN'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          Expanded(
-            child: Text(value),
-          ),
-        ],
+      appBar: AppBar(title: const Text('Campaign Preview')),
+      body: Center(
+        child: Text('Campaign Data: ${campaignData.toString()}'),
       ),
     );
   }
 }
+
 

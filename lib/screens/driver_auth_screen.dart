@@ -10,7 +10,7 @@ class DriverAuthScreen extends StatefulWidget {
 
 class _DriverAuthScreenState extends State<DriverAuthScreen> {
   int _selectedTab = 0; // 0: Sign In, 1: Sign Up, 2: Forgot Password
-  
+
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final fullNameController = TextEditingController();
@@ -62,7 +62,7 @@ class _DriverAuthScreenState extends State<DriverAuthScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Tab Selector
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -79,7 +79,7 @@ class _DriverAuthScreenState extends State<DriverAuthScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -164,7 +164,7 @@ class _DriverAuthScreenState extends State<DriverAuthScreen> {
               '/dashboard',
               arguments: {
                 'email': emailController.text,
-                'userRole': 'DRIVER',
+                'userRole': 'driver', // FIX: Use lowercase
               },
             );
           } else {
@@ -208,9 +208,9 @@ class _DriverAuthScreenState extends State<DriverAuthScreen> {
         _buildFormGroup('Password', passwordController, Icons.lock, isPassword: true),
         const SizedBox(height: 20),
         _buildPrimaryButton('CONTINUE AS DRIVER', () async {
-          if (fullNameController.text.isEmpty || 
-              emailController.text.isEmpty || 
-              phoneController.text.isEmpty || 
+          if (fullNameController.text.isEmpty ||
+              emailController.text.isEmpty ||
+              phoneController.text.isEmpty ||
               passwordController.text.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please fill in all fields')),
@@ -231,7 +231,7 @@ class _DriverAuthScreenState extends State<DriverAuthScreen> {
               '/verification',
               arguments: {
                 'email': result['email'],
-                'userRole': 'DRIVER',
+                'userRole': 'driver', // FIX: Use lowercase
               },
             );
           } else {

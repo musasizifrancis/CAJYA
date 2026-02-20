@@ -10,7 +10,7 @@ class BrandAuthScreen extends StatefulWidget {
 
 class _BrandAuthScreenState extends State<BrandAuthScreen> {
   int _selectedTab = 0; // 0: Sign In, 1: Sign Up, 2: Forgot Password
-  
+
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final companyNameController = TextEditingController();
@@ -62,7 +62,7 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // Tab Selector
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -79,7 +79,7 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -154,7 +154,14 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
           );
 
           if (result['success']) {
-            Navigator.pushNamed(context, '/brand-dashboard');
+            Navigator.pushNamed(
+              context,
+              '/brand-dashboard',
+              arguments: {
+                'email': emailController.text,
+                'userRole': 'brand', // FIX: Use lowercase
+              },
+            );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Error: ${result['error']}')),
@@ -181,9 +188,9 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
         _buildInputField('Password', passwordController, true),
         const SizedBox(height: 20),
         _buildPrimaryButton('CREATE ACCOUNT', () async {
-          if (companyNameController.text.isEmpty || 
-              contactPersonController.text.isEmpty || 
-              emailController.text.isEmpty || 
+          if (companyNameController.text.isEmpty ||
+              contactPersonController.text.isEmpty ||
+              emailController.text.isEmpty ||
               passwordController.text.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please fill in all fields')),
@@ -202,7 +209,10 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
             Navigator.pushNamed(
               context,
               '/verification',
-              arguments: {'email': emailController.text, 'userRole': 'BRAND'},
+              arguments: {
+                'email': emailController.text,
+                'userRole': 'brand', // FIX: Use lowercase
+              },
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
