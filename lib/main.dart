@@ -25,6 +25,14 @@ void main() async {
     anonKey: 'sb_publishable_F7T3fQPmz6Zq1bFK25W4XQ_UP8ulQqG',
   );
 
+  // GLOBAL ERROR HANDLER FOR ALL FLUTTER FRAMEWORK ERRORS
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('🚨 FLUTTER ERROR: ${details.exception}');
+    print('📍 Stack trace: ${details.stack}');
+    // Show error UI instead of crashing
+    FlutterError.presentError(details);
+  };
+
   runApp(const MyApp());
 }
 
@@ -44,6 +52,47 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           useMaterial3: true,
         ),
+        // SHOW FRIENDLY ERROR MESSAGE INSTEAD OF CRASHING
+        builder: (context, widget) {
+          Widget error = widget!;
+          if (widget is Scaffold || widget is Navigator) {
+            error = widget;
+          }
+          ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('⚠️ Something Went Wrong')),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 80, color: Colors.red),
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Error loading screen:\n${errorDetails.exception}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.home),
+                      label: const Text('Go to Home'),
+                      onPressed: () {
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          '/splash',
+                          (route) => false,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          };
+          return error;
+        },
         home: const SplashScreen(),
         onGenerateRoute: (settings) {
           try {
@@ -119,12 +168,23 @@ class MyApp extends StatelessWidget {
               case '/dashboard':
                 final email = args?['email'] as String? ?? 'driver@example.com';
                 final userRole = (args?['userRole'] as String? ?? 'driver').toLowerCase();
-                return MaterialPageRoute(
-                  builder: (context) => _SafeDashboardWrapper(
-                    email: email,
-                    userRole: userRole,
-                  ),
-                );
+                
+                // CHECK ROLE AND LOAD CORRECT DASHBOARD
+                if (userRole == 'brand') {
+                  return MaterialPageRoute(
+                    builder: (context) => _SafeBrandDashboardWrapper(
+                      email: email,
+                      userRole: userRole,
+                    ),
+                  );
+                } else {
+                  return MaterialPageRoute(
+                    builder: (context) => _SafeDashboardWrapper(
+                      email: email,
+                      userRole: userRole,
+                    ),
+                  );
+                }
 
               case '/brand-dashboard':
                 final email = args?['email'] as String? ?? 'brand@example.com';

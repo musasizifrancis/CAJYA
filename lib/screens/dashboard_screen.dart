@@ -19,6 +19,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
   GoogleMapController? _mapControllerMap;
   GoogleMapController? _mapControllerCampaigns;
+  bool _mapsInitialized = false;
+  String? _mapError;
 
   static const LatLng kampalaLocation = LatLng(0.3476, 32.5825);
 
@@ -37,9 +39,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          try {
+            setState(() {
+              _selectedIndex = index;
+            });
+          } catch (e) {
+            print('Error changing tab: $e');
+          }
         },
         items: const [
           BottomNavigationBarItem(
@@ -72,22 +78,116 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTabContent() {
-    switch (_selectedIndex) {
-      case 0:
-        return _buildHomeTab();
-      case 1:
-        return _buildCampaignsTab();
-      case 2:
-        return _buildEarningsTab();
-      case 3:
-        return _buildMapTab();
-      case 4:
-        return _buildAnalyticsTab();
-      case 5:
-        return _buildProfileTab();
-      default:
-        return _buildHomeTab();
+    try {
+      switch (_selectedIndex) {
+        case 0:
+          return _buildHomeTab();
+        case 1:
+          return _buildCampaignsTab();
+        case 2:
+          return _buildEarningsTab();
+        case 3:
+          return _buildMapTab();
+        case 4:
+          return _buildAnalyticsTab();
+        case 5:
+          return _buildProfileTab();
+        default:
+          return _buildHomeTab();
+      }
+    } catch (e) {
+      return _buildErrorScreen('Tab Error', e.toString());
     }
+  }
+
+  // SAFE MAP WIDGET
+  Widget _buildSafeGoogleMap({
+    required CameraPosition initialPosition,
+    required Function(GoogleMapController) onMapCreated,
+    Set<Marker> markers = const {},
+  }) {
+    return Container(
+      color: Colors.grey[300],
+      child: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: initialPosition,
+            onMapCreated: (controller) {
+              try {
+                setState(() {
+                  _mapsInitialized = true;
+                  _mapError = null;
+                });
+                onMapCreated(controller);
+              } catch (e) {
+                setState(() {
+                  _mapError = 'Map error: $e';
+                });
+                print('GoogleMap error: $e');
+              }
+            },
+            markers: markers,
+            onCameraMoveStarted: () {
+              try {
+                // Camera move started
+              } catch (e) {
+                print('Camera move error: $e');
+              }
+            },
+            zoomControlsEnabled: true,
+            compassEnabled: true,
+          ),
+          if (_mapError != null)
+            Positioned(
+              bottom: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _mapError!,
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(String title, String message) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 80, color: Colors.red),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedIndex = 0;
+                });
+              },
+              child: const Text('Return to Home'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // HOME TAB
@@ -184,8 +284,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         SizedBox(
           height: 300,
           width: double.infinity,
-          child: GoogleMap(
-            initialCameraPosition: const CameraPosition(
+          child: _buildSafeGoogleMap(
+            initialPosition: const CameraPosition(
               target: kampalaLocation,
               zoom: 13,
             ),
@@ -195,17 +295,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               });
             },
             markers: {
-              Marker(
-                markerId: const MarkerId('driver1'),
-                position: const LatLng(0.3500, 32.5850),
-                infoWindow: const InfoWindow(title: 'Driver 1 - Active'),
-                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+              const Marker(
+                markerId: MarkerId('driver1'),
+                position: LatLng(0.3500, 32.5850),
+                infoWindow: InfoWindow(title: 'Driver 1 - Active'),
               ),
-              Marker(
-                markerId: const MarkerId('driver2'),
-                position: const LatLng(0.3450, 32.5800),
-                infoWindow: const InfoWindow(title: 'Driver 2 - Active'),
-                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+              const Marker(
+                markerId: MarkerId('driver2'),
+                position: LatLng(0.3450, 32.5800),
+                infoWindow: InfoWindow(title: 'Driver 2 - Active'),
               ),
             },
           ),
@@ -306,11 +404,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(
-                  context,
-                  '/withdrawal',
-                  arguments: {'email': widget.email, 'userRole': widget.userRole},
-                );
+                try {
+                  Navigator.pushNamed(
+                    context,
+                    '/withdrawal',
+                    arguments: {'email': widget.email, 'userRole': widget.userRole},
+                  );
+                } catch (e) {
+                  print('Navigation error: $e');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
@@ -358,8 +460,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMapTab() {
     return Stack(
       children: [
-        GoogleMap(
-          initialCameraPosition: const CameraPosition(
+        _buildSafeGoogleMap(
+          initialPosition: const CameraPosition(
             target: kampalaLocation,
             zoom: 15,
           ),
@@ -552,7 +654,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacementNamed(context, '/role-selection');
+                try {
+                  Navigator.pushReplacementNamed(context, '/role-selection');
+                } catch (e) {
+                  print('Navigation error: $e');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
