@@ -10,13 +10,9 @@ import 'screens/brand_auth_screen.dart';
 import 'screens/email_verification_screen.dart';
 import 'screens/driver_profile_screen.dart';
 import 'screens/brand_profile_screen.dart';
-import 'screens/vehicle_details_screen.dart';
-import 'screens/driver_dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
 import 'screens/withdrawal_screen.dart';
 import 'screens/brand_campaign_creation_screen.dart';
-import 'screens/campaign_analytics_screen.dart';
-import 'screens/settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,19 +47,29 @@ class MyApp extends StatelessWidget {
 
           switch (settings.name) {
             case '/splash':
-              return MaterialPageRoute(builder: (context) => const SplashScreen());
+              return MaterialPageRoute(
+                builder: (context) => const SplashScreen(),
+              );
 
             case '/onboarding':
-              return MaterialPageRoute(builder: (context) => const OnboardingScreen());
+              return MaterialPageRoute(
+                builder: (context) => const OnboardingScreen(),
+              );
 
             case '/role-selection':
-              return MaterialPageRoute(builder: (context) => const RoleSelectionScreen());
+              return MaterialPageRoute(
+                builder: (context) => const RoleSelectionScreen(),
+              );
 
             case '/driver-auth':
-              return MaterialPageRoute(builder: (context) => const DriverAuthScreen());
+              return MaterialPageRoute(
+                builder: (context) => const DriverAuthScreen(),
+              );
 
             case '/brand-auth':
-              return MaterialPageRoute(builder: (context) => const BrandAuthScreen());
+              return MaterialPageRoute(
+                builder: (context) => const BrandAuthScreen(),
+              );
 
             case '/email-verification':
               return MaterialPageRoute(
@@ -75,25 +81,26 @@ class MyApp extends StatelessWidget {
               );
 
             case '/driver-profile':
-              return MaterialPageRoute(builder: (context) => const DriverProfileScreen());
+              return MaterialPageRoute(
+                builder: (context) => const DriverProfileScreen(),
+              );
 
             case '/brand-profile':
-              return MaterialPageRoute(builder: (context) => const BrandProfileScreen());
-
-            case '/vehicle-details':
-              return MaterialPageRoute(builder: (context) => const VehicleDetailsScreen());
+              return MaterialPageRoute(
+                builder: (context) => const BrandProfileScreen(),
+              );
 
             case '/driver-dashboard':
               return MaterialPageRoute(
                 builder: (context) => DriverDashboardScreen(
-                  email: args?['email'] ?? '',
+                  email: args?['email'] ?? 'driver@example.com',
                 ),
               );
 
             case '/brand-dashboard':
               return MaterialPageRoute(
                 builder: (context) => BrandDashboardScreen(
-                  email: args?['email'] ?? '',
+                  email: args?['email'] ?? 'brand@example.com',
                   userRole: args?['userRole'] ?? 'brand',
                 ),
               );
@@ -110,20 +117,49 @@ class MyApp extends StatelessWidget {
                 builder: (context) => const BrandCampaignCreationScreen(),
               );
 
-            case '/campaign-analytics':
-              return MaterialPageRoute(
-                builder: (context) => const CampaignAnalyticsScreen(),
-              );
-
-            case '/settings':
-              return MaterialPageRoute(
-                builder: (context) => const SettingsScreen(),
-              );
-
             default:
-              return MaterialPageRoute(builder: (context) => const SplashScreen());
+              return MaterialPageRoute(
+                builder: (context) => const SplashScreen(),
+              );
           }
         },
+      ),
+    );
+  }
+}
+
+// Placeholder for DriverDashboardScreen
+class DriverDashboardScreen extends StatelessWidget {
+  final String email;
+  
+  const DriverDashboardScreen({
+    Key? key,
+    required this.email,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Driver Dashboard'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Welcome Driver!'),
+            const SizedBox(height: 20),
+            Text('Email: $email'),
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Go Back'),
+            ),
+          ],
+        ),
       ),
     );
   }
