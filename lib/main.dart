@@ -9,7 +9,7 @@ import 'screens/driver_auth_screen.dart';
 import 'screens/brand_auth_screen.dart';
 import 'screens/email_verification_screen.dart';
 import 'screens/driver_profile_screen.dart';
-import 'screens/brand_profile_screen.dart';
+import 'screens/brand_profile_screen.dart' as brand_profile;
 import 'screens/brand_dashboard_screen.dart';
 import 'screens/withdrawal_screen.dart';
 import 'screens/brand_campaign_creation_screen.dart';
@@ -82,12 +82,16 @@ class MyApp extends StatelessWidget {
 
             case '/driver-profile':
               return MaterialPageRoute(
-                builder: (context) => const DriverProfileScreen(),
+                builder: (context) => DriverProfileScreen(
+                  initialData: args ?? {},
+                ),
               );
 
             case '/brand-profile':
               return MaterialPageRoute(
-                builder: (context) => const BrandProfileScreen(),
+                builder: (context) => brand_profile.DriverProfileScreen(
+                  initialData: args ?? {},
+                ),
               );
 
             case '/driver-dashboard':
@@ -108,6 +112,7 @@ class MyApp extends StatelessWidget {
             case '/withdrawal':
               return MaterialPageRoute(
                 builder: (context) => WithdrawalScreen(
+                  email: args?['email'] ?? 'user@example.com',
                   userRole: args?['userRole'] ?? 'brand',
                 ),
               );
@@ -148,7 +153,7 @@ class DriverDashboardScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Welcome Driver!'),
+            const Text('Welcome Driver!'),
             const SizedBox(height: 20),
             Text('Email: $email'),
             const SizedBox(height: 30),
