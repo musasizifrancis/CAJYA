@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import 'providers/main_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/role_selection_screen.dart';
 import 'screens/driver_auth_screen.dart';
 import 'screens/brand_auth_screen.dart';
-import 'screens/email_verification_screen.dart';
 import 'screens/verification_screen.dart';
-import 'screens/driver_profile_screen.dart';
-import 'screens/brand_profile_screen.dart' as brand_profile;
-import 'screens/vehicle_registration_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
-import 'screens/brand_campaign_creation_screen.dart';
-import 'screens/withdrawal_screen.dart';
+import 'screens/vehicle_details_screen.dart';
+import 'screens/campaign_preview_screen.dart';
+import 'screens/driver_profile_screen.dart';
+import 'screens/notification_screen.dart';
+import 'screens/available_campaigns_screen.dart';
+import 'screens/campaign_details_screen.dart';
+import 'screens/messaging_screen.dart';
+import 'providers/main_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,14 +26,6 @@ void main() async {
     anonKey: 'sb_publishable_F7T3fQPmz6Zq1bFK25W4XQ_UP8ulQqG',
   );
 
-  // GLOBAL ERROR HANDLER FOR ALL FLUTTER FRAMEWORK ERRORS
-  FlutterError.onError = (FlutterErrorDetails details) {
-    print('🚨 FLUTTER ERROR: ${details.exception}');
-    print('📍 Stack trace: ${details.stack}');
-    // Show error UI instead of crashing
-    FlutterError.presentError(details);
-  };
-
   runApp(const MyApp());
 }
 
@@ -41,194 +34,95 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => MainProvider()),
-      ],
+    return ChangeNotifierProvider(
+      create: (context) => MainProvider(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'CAJYA',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-        ),
-        // SHOW FRIENDLY ERROR MESSAGE INSTEAD OF CRASHING
-        builder: (context, widget) {
-          Widget error = widget!;
-          if (widget is Scaffold || widget is Navigator) {
-            error = widget;
-          }
-          ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('⚠️ Something Went Wrong')),
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline, size: 80, color: Colors.red),
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Error loading screen:\n${errorDetails.exception}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.home),
-                      label: const Text('Go to Home'),
-                      onPressed: () {
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/splash',
-                          (route) => false,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          };
-          return error;
-        },
+        theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
         home: const SplashScreen(),
-        onGenerateRoute: (settings) {
-          try {
-            final args = settings.arguments as Map<String, dynamic>?;
+        onGenerateRoute: (RouteSettings settings) {
+          final args = settings.arguments as Map<String, dynamic>?;
 
-            switch (settings.name) {
-              case '/splash':
-                return MaterialPageRoute(
-                  builder: (context) => const SplashScreen(),
-                );
-
-              case '/onboarding':
-                return MaterialPageRoute(
-                  builder: (context) => const OnboardingScreen(),
-                );
-
-              case '/role_selection':
-                return MaterialPageRoute(
-                  builder: (context) => const RoleSelectionScreen(),
-                );
-
-              case '/driver-auth':
-                return MaterialPageRoute(
-                  builder: (context) => const DriverAuthScreen(),
-                );
-
-              case '/brand-auth':
-                return MaterialPageRoute(
-                  builder: (context) => const BrandAuthScreen(),
-                );
-
-              // Email verification (after sign-up email sent)
-              case '/email-verification':
-                return MaterialPageRoute(
-                  builder: (context) => const EmailVerificationScreen(),
-                  settings: RouteSettings(
-                    name: settings.name,
-                    arguments: args,
-                  ),
-                );
-
-              // Photo verification (after driver/brand auth)
-              case '/verification':
-                final email = args?['email'] as String? ?? 'unknown@example.com';
-                final userRole = (args?['userRole'] as String? ?? 'driver').toLowerCase();
-                return MaterialPageRoute(
-                  builder: (context) => VerificationScreen(
-                    email: email,
-                    userRole: userRole,
-                  ),
-                );
-
-              case '/driver-profile':
-                return MaterialPageRoute(
-                  builder: (context) => DriverProfileScreen(
-                    initialData: args ?? {},
-                  ),
-                );
-
-              case '/brand-profile':
-                return MaterialPageRoute(
-                  builder: (context) => brand_profile.DriverProfileScreen(
-                    initialData: args ?? {},
-                  ),
-                );
-
-              // Vehicle details (from driver_profile or brand_profile)
-              case '/vehicle-details':
-                return MaterialPageRoute(
-                  builder: (context) => const VehicleDetailsScreen(),
-                );
-
-              case '/dashboard':
-                final email = args?['email'] as String? ?? 'driver@example.com';
-                final userRole = (args?['userRole'] as String? ?? 'driver').toLowerCase();
-                
-                // CHECK ROLE AND LOAD CORRECT DASHBOARD
-                if (userRole == 'brand') {
-                  return MaterialPageRoute(
-                    builder: (context) => _SafeBrandDashboardWrapper(
-                      email: email,
-                      userRole: userRole,
-                    ),
-                  );
-                } else {
-                  return MaterialPageRoute(
-                    builder: (context) => _SafeDashboardWrapper(
-                      email: email,
-                      userRole: userRole,
-                    ),
-                  );
-                }
-
-              case '/brand-dashboard':
-                final email = args?['email'] as String? ?? 'brand@example.com';
-                final userRole = (args?['userRole'] as String? ?? 'brand').toLowerCase();
-                return MaterialPageRoute(
-                  builder: (context) => _SafeBrandDashboardWrapper(
-                    email: email,
-                    userRole: userRole,
-                  ),
-                );
-
-              case '/withdrawal':
-                final email = args?['email'] as String? ?? 'user@example.com';
-                final userRole = args?['userRole'] as String? ?? 'brand';
-                return MaterialPageRoute(
-                  builder: (context) => WithdrawalScreen(
-                    email: email,
-                    userRole: userRole,
-                  ),
-                );
-
-              case '/brand-campaign-creation':
-                return MaterialPageRoute(
-                  builder: (context) => const BrandCampaignCreationScreen(),
-                );
-
-              // Campaign preview (from brand_campaign_creation)
-              case '/campaign-preview':
-                return MaterialPageRoute(
-                  builder: (context) => CampaignPreviewScreen(
-                    campaignData: args ?? {},
-                  ),
-                );
-
-              default:
-                return MaterialPageRoute(
-                  builder: (context) => const SplashScreen(),
-                );
-            }
-          } catch (e) {
-            // Error handler - return error screen
-            return MaterialPageRoute(
-              builder: (context) => ErrorScreen(error: e.toString()),
-            );
+          switch (settings.name) {
+            case '/onboarding':
+              return MaterialPageRoute(
+                builder: (_) => const OnboardingScreen(),
+                settings: settings,
+              );
+            case '/role_selection':
+              return MaterialPageRoute(
+                builder: (_) => const RoleSelectionScreen(),
+                settings: settings,
+              );
+            case '/driver_auth':
+              return MaterialPageRoute(
+                builder: (_) => const DriverAuthScreen(),
+                settings: settings,
+              );
+            case '/brand_auth':
+              return MaterialPageRoute(
+                builder: (_) => const BrandAuthScreen(),
+                settings: settings,
+              );
+            case '/verification':
+              return MaterialPageRoute(
+                builder: (_) => VerificationScreen(
+                  email: args?['email'] ?? '',
+                  userRole: args?['userRole'] ?? 'driver',
+                  userData: args?['userData'] ?? {},
+                ),
+                settings: settings,
+              );
+            case '/dashboard':
+              return MaterialPageRoute(
+                builder: (_) => _DashboardPage(
+                  email: args?['email'] ?? '',
+                  userRole: args?['userRole'] ?? 'driver',
+                  userData: args?['userData'] ?? {},
+                ),
+                settings: settings,
+              );
+            case '/vehicle-details':
+              return MaterialPageRoute(
+                builder: (_) => const VehicleDetailsScreen(),
+                settings: settings,
+              );
+            case '/campaign-preview':
+              return MaterialPageRoute(
+                builder: (_) => const CampaignPreviewScreen(),
+                settings: settings,
+              );
+            case '/driver-profile':
+              return MaterialPageRoute(
+                builder: (_) => const DriverProfileScreen(),
+                settings: settings,
+              );
+            case '/notifications':
+              return MaterialPageRoute(
+                builder: (_) => const NotificationScreen(),
+                settings: settings,
+              );
+            case '/available-campaigns':
+              return MaterialPageRoute(
+                builder: (_) => const AvailableCampaignsScreen(),
+                settings: settings,
+              );
+            case '/campaign-details':
+              return MaterialPageRoute(
+                builder: (_) => const CampaignDetailsScreen(),
+                settings: settings,
+              );
+            case '/messaging':
+              return MaterialPageRoute(
+                builder: (_) => const MessagingScreen(),
+                settings: settings,
+              );
+            default:
+              return MaterialPageRoute(
+                builder: (_) => const SplashScreen(),
+                settings: settings,
+              );
           }
         },
       ),
@@ -236,202 +130,137 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// SAFETY WRAPPERS FOR GOOGLE MAPS DASHBOARDS
-class _SafeDashboardWrapper extends StatefulWidget {
+class _DashboardPage extends StatelessWidget {
   final String email;
   final String userRole;
+  final Map<String, dynamic> userData;
 
-  const _SafeDashboardWrapper({
+  const _DashboardPage({
     required this.email,
     required this.userRole,
+    required this.userData,
   });
 
   @override
-  State<_SafeDashboardWrapper> createState() => _SafeDashboardWrapperState();
-}
-
-class _SafeDashboardWrapperState extends State<_SafeDashboardWrapper> {
-  bool _hasError = false;
-  String _errorMessage = '';
-
-  @override
   Widget build(BuildContext context) {
-    if (_hasError) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Error Loading Dashboard')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 60, color: Colors.red),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Error: $_errorMessage',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Go Back'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return _ErrorBoundary(
-      onError: (error) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = error;
-        });
-      },
-      child: DashboardScreen(
-        email: widget.email,
-        userRole: widget.userRole,
-      ),
+    return _SafeDashboard(
+      email: email,
+      userRole: userRole,
+      userData: userData,
     );
   }
 }
 
-class _SafeBrandDashboardWrapper extends StatefulWidget {
+class _SafeDashboard extends StatefulWidget {
   final String email;
   final String userRole;
+  final Map<String, dynamic> userData;
 
-  const _SafeBrandDashboardWrapper({
+  const _SafeDashboard({
     required this.email,
     required this.userRole,
+    required this.userData,
   });
 
   @override
-  State<_SafeBrandDashboardWrapper> createState() =>
-      _SafeBrandDashboardWrapperState();
+  State<_SafeDashboard> createState() => _SafeDashboardState();
 }
 
-class _SafeBrandDashboardWrapperState extends State<_SafeBrandDashboardWrapper> {
-  bool _hasError = false;
-  String _errorMessage = '';
+class _SafeDashboardState extends State<_SafeDashboard> {
+  late Future<Widget> dashboardFuture;
 
   @override
-  Widget build(BuildContext context) {
-    if (_hasError) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Error Loading Dashboard')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 60, color: Colors.red),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Error: $_errorMessage',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Go Back'),
-              ),
-            ],
-          ),
-        ),
-      );
+  void initState() {
+    super.initState();
+    dashboardFuture = _loadDashboard();
+  }
+
+  Future<Widget> _loadDashboard() async {
+    try {
+      final role = widget.userRole.toLowerCase().trim();
+
+      if (role == 'brand') {
+        return BrandDashboardScreen(
+          email: widget.email,
+          userData: widget.userData,
+        );
+      } else {
+        return DashboardScreen(
+          email: widget.email,
+          userData: widget.userData,
+        );
+      }
+    } catch (e) {
+      return _ErrorPage(error: e.toString());
     }
-
-    return _ErrorBoundary(
-      onError: (error) {
-        setState(() {
-          _hasError = true;
-          _errorMessage = error;
-        });
-      },
-      child: BrandDashboardScreen(
-        email: widget.email,
-        userRole: widget.userRole,
-      ),
-    );
   }
-}
-
-// ERROR BOUNDARY WIDGET
-class _ErrorBoundary extends StatelessWidget {
-  final Widget child;
-  final Function(String) onError;
-
-  const _ErrorBoundary({
-    required this.child,
-    required this.onError,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: child,
+    return FutureBuilder<Widget>(
+      future: dashboardFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return _ErrorPage(error: snapshot.error.toString());
+        }
+
+        return snapshot.data ?? const SplashScreen();
+      },
     );
   }
 }
 
-// ERROR SCREEN
-class ErrorScreen extends StatelessWidget {
+class _ErrorPage extends StatelessWidget {
   final String error;
 
-  const ErrorScreen({required this.error});
+  const _ErrorPage({required this.error});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Error')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 60, color: Colors.red),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'An error occurred:\n\n$error',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/splash',
-                (route) => false,
-              ),
-              child: const Text('Go to Home'),
-            ),
-          ],
-        ),
+      appBar: AppBar(
+        title: const Text('Error'),
+        backgroundColor: Colors.red,
       ),
-    );
-  }
-}
-
-// Placeholder for CampaignPreviewScreen
-class CampaignPreviewScreen extends StatelessWidget {
-  final Map<String, dynamic> campaignData;
-
-  const CampaignPreviewScreen({required this.campaignData});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Campaign Preview')),
       body: Center(
-        child: Text('Campaign Data: ${campaignData.toString()}'),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text(
+                'Dashboard Failed to Load',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  border: Border.all(color: Colors.red),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  error,
+                  style: const TextStyle(color: Colors.red, fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Go Back'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    await Future.delayed(const Duration(milliseconds: 3000), () {});
+    await Future.delayed(const Duration(milliseconds: 2000), () {});
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/onboarding');
     }
@@ -24,54 +24,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF001a4d),
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo image
-            SizedBox(
-              width: 150,
-              height: 150,
-              child: Image.asset(
-                'assets/images/cajya_logo.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  // Fallback if image not found
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.directions_car,
-                        size: 80,
-                        color: Colors.white,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             Text(
               'CAJYA',
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    color: Colors.white,
+                    color: Colors.black87,
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 20),
             Text(
-              'Advertising & Transportation',
+              'Driver Advertising App',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.white70,
+                    color: Colors.black54,
                   ),
-            ),
-            const SizedBox(height: 60),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ],
         ),
