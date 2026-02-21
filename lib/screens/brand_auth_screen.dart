@@ -154,12 +154,13 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
           );
 
           if (result['success']) {
+            // FIXED: Use /dashboard with brand role, not /brand-dashboard
             Navigator.pushNamed(
               context,
-              '/brand-dashboard',
+              '/dashboard',
               arguments: {
                 'email': emailController.text,
-                'userRole': 'brand', // FIX: Use lowercase
+                'userRole': 'brand', // FIXED: Lowercase
               },
             );
           } else {
@@ -211,7 +212,7 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
               '/verification',
               arguments: {
                 'email': emailController.text,
-                'userRole': 'brand', // FIX: Use lowercase
+                'userRole': 'brand', // FIXED: Lowercase
               },
             );
           } else {
@@ -313,3 +314,4 @@ class _BrandAuthScreenState extends State<BrandAuthScreen> {
     super.dispose();
   }
 }
+

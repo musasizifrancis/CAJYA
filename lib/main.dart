@@ -48,12 +48,14 @@ class MyApp extends StatelessWidget {
                 builder: (_) => const RoleSelectionScreen(),
                 settings: settings,
               );
-            case '/driver_auth':
+            // FIXED: Changed from /driver_auth to /driver-auth (with hyphen)
+            case '/driver-auth':
               return MaterialPageRoute(
                 builder: (_) => const DriverAuthScreen(),
                 settings: settings,
               );
-            case '/brand_auth':
+            // FIXED: Changed from /brand_auth to /brand-auth (with hyphen)
+            case '/brand-auth':
               return MaterialPageRoute(
                 builder: (_) => const BrandAuthScreen(),
                 settings: settings,
@@ -69,7 +71,7 @@ class MyApp extends StatelessWidget {
             case '/dashboard':
               final email = args?['email'] ?? '';
               final userRole = (args?['userRole'] ?? 'driver').toString().toLowerCase().trim();
-              
+
               // Load correct dashboard based on userRole
               if (userRole == 'brand') {
                 return MaterialPageRoute(
@@ -99,5 +101,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 
 

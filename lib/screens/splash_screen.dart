@@ -24,25 +24,37 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.white, // WHITE background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 20),
-            Text(
-              'CAJYA',
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.bold,
-                  ),
+            // Logo Image
+            Image.asset(
+              'assets/images/cajya_logo.png',
+              width: 150,
+              height: 150,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 30),
+            // App Name
+            const Text(
+              'CAJYA',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.black, // BLACK text
+              ),
+            ),
+            const SizedBox(height: 10),
+            // Tagline
+            const Text(
               'Driver Advertising App',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.black54,
-                  ),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+                letterSpacing: 0.5,
+              ),
             ),
           ],
         ),

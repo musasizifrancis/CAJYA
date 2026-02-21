@@ -164,7 +164,7 @@ class _DriverAuthScreenState extends State<DriverAuthScreen> {
               '/dashboard',
               arguments: {
                 'email': emailController.text,
-                'userRole': 'driver', // FIX: Use lowercase
+                'userRole': 'driver', // FIXED: Lowercase
               },
             );
           } else {
@@ -231,7 +231,7 @@ class _DriverAuthScreenState extends State<DriverAuthScreen> {
               '/verification',
               arguments: {
                 'email': result['email'],
-                'userRole': 'driver', // FIX: Use lowercase
+                'userRole': 'driver', // FIXED: Lowercase
               },
             );
           } else {
