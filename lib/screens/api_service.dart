@@ -15,28 +15,44 @@ class ApiService {
 
   static Future<String?> getDriverIdForUser(String userId) async {
     try {
+      print('DEBUG: Getting driver ID for user: $userId');
       final response = await _supabase.client
           .from('driver_profiles')
           .select('id')
-          .eq('user_id', userId)
-          .single();
-      return response['id'] as String?;
+          .eq('user_id', userId);
+      
+      print('DEBUG: Driver profile response: $response');
+      
+      if (response.isEmpty) {
+        print('ERROR: No driver profile found for user $userId');
+        return null;
+      }
+      
+      return response[0]['id'] as String?;
     } catch (e) {
-      print('Error getting driver ID: $e');
+      print('ERROR getting driver ID: $e');
       return null;
     }
   }
 
   static Future<String?> getBrandIdForUser(String userId) async {
     try {
+      print('DEBUG: Getting brand ID for user: $userId');
       final response = await _supabase.client
           .from('brand_profiles')
           .select('id')
-          .eq('user_id', userId)
-          .single();
-      return response['id'] as String?;
+          .eq('user_id', userId);
+      
+      print('DEBUG: Brand profile response: $response');
+      
+      if (response.isEmpty) {
+        print('ERROR: No brand profile found for user $userId');
+        return null;
+      }
+      
+      return response[0]['id'] as String?;
     } catch (e) {
-      print('Error getting brand ID: $e');
+      print('ERROR getting brand ID: $e');
       return null;
     }
   }
@@ -84,23 +100,22 @@ class ApiService {
     required String brandId,
     required String campaignName,
     required String targetCity,
-    required String description,
-    required double budget,
-    required int durationDays,
+    required double weeklyBudget,
+    required int campaignDurationWeeks,
+    required double driverEarningsPerWeek,
   }) async {
     try {
       await _supabase.client.from('campaigns').insert({
         'brand_id': brandId,
         'campaign_name': campaignName,
         'target_city': targetCity,
-        'description': description,
-        'budget': budget,
-        'duration_days': durationDays,
-        'status': 'active',
-        'created_at': DateTime.now().toIso8601String(),
+        'weekly_budget': weeklyBudget,
+        'campaign_duration_weeks': campaignDurationWeeks,
+        'driver_earnings_per_week': driverEarningsPerWeek,
       });
       return true;
     } catch (e) {
+      print('Error creating campaign: $e');
       return false;
     }
   }
