@@ -3,6 +3,44 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class ApiService {
   static final Supabase _supabase = Supabase.instance;
 
+  // GET CURRENT USER
+  static Future<String?> getCurrentUserId() async {
+    try {
+      return _supabase.client.auth.currentUser?.id;
+    } catch (e) {
+      print('Error getting current user: $e');
+      return null;
+    }
+  }
+
+  static Future<String?> getDriverIdForUser(String userId) async {
+    try {
+      final response = await _supabase.client
+          .from('driver_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+      return response['id'] as String?;
+    } catch (e) {
+      print('Error getting driver ID: $e');
+      return null;
+    }
+  }
+
+  static Future<String?> getBrandIdForUser(String userId) async {
+    try {
+      final response = await _supabase.client
+          .from('brand_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+      return response['id'] as String?;
+    } catch (e) {
+      print('Error getting brand ID: $e');
+      return null;
+    }
+  }
+
   // CAMPAIGNS
   static Future<List<Map<String, dynamic>>> getAllCampaigns() async {
     try {
@@ -159,7 +197,7 @@ class ApiService {
   static Future<Map<String, dynamic>?> getDriverProfile(String driverId) async {
     try {
       final response = await _supabase.client
-          .from('driver_profile')
+          .from('driver_profiles')
           .select()
           .eq('id', driverId)
           .single();
@@ -173,7 +211,7 @@ class ApiService {
   static Future<Map<String, dynamic>?> getBrandProfile(String brandId) async {
     try {
       final response = await _supabase.client
-          .from('brand_profile')
+          .from('brand_profiles')
           .select()
           .eq('id', brandId)
           .single();
@@ -190,7 +228,7 @@ class ApiService {
     required double longitude,
   }) async {
     try {
-      await _supabase.client.from('driver_location').insert({
+      await _supabase.client.from('driver_locations').insert({
         'driver_id': driverId,
         'latitude': latitude,
         'longitude': longitude,

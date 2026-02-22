@@ -22,12 +22,15 @@ class _DashboardScreenState extends State<DashboardScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
-    _initializeUser();
+    _initializeUser();  // This is async but we don't need to await
   }
 
-  void _initializeUser() {
+  Future<void> _initializeUser() async {
     _userId = Supabase.instance.client.auth.currentUser?.id;
-    _driverId = _userId;
+    if (_userId != null) {
+      _driverId = await ApiService.getDriverIdForUser(_userId!);
+      setState(() {});
+    }
   }
 
   @override
@@ -359,3 +362,4 @@ class _DashboardScreenState extends State<DashboardScreen>
     super.dispose();
   }
 }
+

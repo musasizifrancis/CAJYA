@@ -22,12 +22,15 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
-    _initializeUser();
+    _initializeUser();  // This is async but we don't need to await
   }
 
-  void _initializeUser() {
+  Future<void> _initializeUser() async {
     _userId = Supabase.instance.client.auth.currentUser?.id;
-    _brandId = _userId;
+    if (_userId != null) {
+      _brandId = await ApiService.getBrandIdForUser(_userId!);
+      setState(() {});
+    }
   }
 
   @override
