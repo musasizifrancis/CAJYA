@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String email;
@@ -17,59 +16,42 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
-  GoogleMapController? _mapControllerMap;
-  GoogleMapController? _mapControllerCampaigns;
-  bool _mapsInitialized = false;
-  String? _mapError;
-
-  static const LatLng kampalaLocation = LatLng(0.3476, 32.5825);
-
-  @override
-  void dispose() {
-    _mapControllerMap?.dispose();
-    _mapControllerCampaigns?.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Driver Dashboard'),
+        centerTitle: true,
+      ),
       body: _buildTabContent(),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          try {
-            setState(() {
-              _selectedIndex = index;
-            });
-          } catch (e) {
-            print('Error changing tab: $e');
-          }
+          setState(() {
+            _selectedIndex = index;
+          });
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home, color: Colors.orange),
+            icon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt, color: Colors.brown),
+            icon: Icon(Icons.list_alt),
             label: 'Campaigns',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.attach_money, color: Colors.amber),
+            icon: Icon(Icons.attach_money),
             label: 'Earnings',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.map, color: Colors.blue),
-            label: 'Map',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics, color: Colors.purple),
+            icon: Icon(Icons.analytics),
             label: 'Analytics',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: Colors.blue),
+            icon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
@@ -78,116 +60,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildTabContent() {
-    try {
-      switch (_selectedIndex) {
-        case 0:
-          return _buildHomeTab();
-        case 1:
-          return _buildCampaignsTab();
-        case 2:
-          return _buildEarningsTab();
-        case 3:
-          return _buildMapTab();
-        case 4:
-          return _buildAnalyticsTab();
-        case 5:
-          return _buildProfileTab();
-        default:
-          return _buildHomeTab();
-      }
-    } catch (e) {
-      return _buildErrorScreen('Tab Error', e.toString());
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeTab();
+      case 1:
+        return _buildCampaignsTab();
+      case 2:
+        return _buildEarningsTab();
+      case 3:
+        return _buildAnalyticsTab();
+      case 4:
+        return _buildProfileTab();
+      default:
+        return _buildHomeTab();
     }
-  }
-
-  // SAFE MAP WIDGET
-  Widget _buildSafeGoogleMap({
-    required CameraPosition initialPosition,
-    required Function(GoogleMapController) onMapCreated,
-    Set<Marker> markers = const {},
-  }) {
-    return Container(
-      color: Colors.grey[300],
-      child: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: initialPosition,
-            onMapCreated: (controller) {
-              try {
-                setState(() {
-                  _mapsInitialized = true;
-                  _mapError = null;
-                });
-                onMapCreated(controller);
-              } catch (e) {
-                setState(() {
-                  _mapError = 'Map error: $e';
-                });
-                print('GoogleMap error: $e');
-              }
-            },
-            markers: markers,
-            onCameraMoveStarted: () {
-              try {
-                // Camera move started
-              } catch (e) {
-                print('Camera move error: $e');
-              }
-            },
-            zoomControlsEnabled: true,
-            compassEnabled: true,
-          ),
-          if (_mapError != null)
-            Positioned(
-              bottom: 10,
-              left: 10,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  _mapError!,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorScreen(String title, String message) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 80, color: Colors.red),
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _selectedIndex = 0;
-                });
-              },
-              child: const Text('Return to Home'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   // HOME TAB
@@ -197,7 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFF1E88E5), Color(0xFF1565C0)],
@@ -208,10 +94,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
                 const Text(
-                  'Hello, Driver!',
-                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  'Welcome Driver!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -225,31 +114,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Today's Stats",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildStatCard('Campaigns', '3', Colors.blue),
-                          _buildStatCard('Earnings', '150K', Colors.green),
-                          _buildStatCard('Distance', '45km', Colors.orange),
-                        ],
-                      ),
-                    ],
-                  ),
+                const Text(
+                  "Today's Stats",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatCard('Campaigns', '3', Colors.blue),
+                    _buildStatCard('Earnings', '150K', Colors.green),
+                    _buildStatCard('Distance', '45km', Colors.orange),
+                  ],
                 ),
               ],
             ),
@@ -269,74 +147,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Column(
         children: [
-          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
         ],
       ),
     );
   }
 
-  // CAMPAIGNS TAB WITH MAP
+  // CAMPAIGNS TAB
   Widget _buildCampaignsTab() {
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.all(16),
       children: [
-        SizedBox(
-          height: 300,
-          width: double.infinity,
-          child: _buildSafeGoogleMap(
-            initialPosition: const CameraPosition(
-              target: kampalaLocation,
-              zoom: 13,
-            ),
-            onMapCreated: (controller) {
-              setState(() {
-                _mapControllerCampaigns = controller;
-              });
-            },
-            markers: {
-              const Marker(
-                markerId: MarkerId('driver1'),
-                position: LatLng(0.3500, 32.5850),
-                infoWindow: InfoWindow(title: 'Driver 1 - Active'),
-              ),
-              const Marker(
-                markerId: MarkerId('driver2'),
-                position: LatLng(0.3450, 32.5800),
-                infoWindow: InfoWindow(title: 'Driver 2 - Active'),
-              ),
-            },
-          ),
+        const Text(
+          'My Campaigns',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              const Text(
-                'My Campaigns',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              _buildCampaignCard('UberEats Promo', '5000/week', 'Jan 15, 2025', 'Active'),
-              _buildCampaignCard('Jumia Delivery', '4000/week', 'Jan 20, 2025', 'Active'),
-              _buildCampaignCard('Bolt Food', '6000/week', 'Feb 1, 2025', 'Pending'),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.all(16),
-                ),
-                child: const Text('LOAD MORE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
+        const SizedBox(height: 12),
+        _buildCampaignCard('UberEats Promo', '5000/week', 'Jan 15, 2025', 'Active'),
+        _buildCampaignCard('Jumia Delivery', '4000/week', 'Jan 20, 2025', 'Active'),
+        _buildCampaignCard('Bolt Food', '6000/week', 'Feb 1, 2025', 'Pending'),
       ],
     );
   }
 
-  Widget _buildCampaignCard(String name, String payment, String date, String status) {
+  Widget _buildCampaignCard(
+    String name,
+    String payment,
+    String date,
+    String status,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -347,25 +198,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: status == 'Active' ? Colors.green : Colors.orange,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(status, style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  child: Text(
+                    status,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(payment, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-            Text('Start: $date', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              child: const Text('View Details', style: TextStyle(color: Colors.white)),
+            Text(
+              'Start: $date',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
@@ -395,43 +252,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Total Earnings', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                  Text(
+                    'Total Earnings',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
                   SizedBox(height: 8),
-                  Text('UGX 450,000', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text(
+                    'UGX 450,000',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                try {
-                  Navigator.pushNamed(
-                    context,
-                    '/withdrawal',
-                    arguments: {'email': widget.email, 'userRole': widget.userRole},
-                  );
-                } catch (e) {
-                  print('Navigation error: $e');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: const Text('REQUEST WITHDRAW', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const Text(
+              'Monthly Breakdown',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 24),
-            const Text('Monthly Breakdown', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             _buildMonthlyEarning('January', 'UGX 45,000'),
             _buildMonthlyEarning('February', 'UGX 48,000'),
             _buildMonthlyEarning('March', 'UGX 52,000'),
             _buildMonthlyEarning('April', 'UGX 50,000'),
             _buildMonthlyEarning('May', 'UGX 55,000'),
-            _buildMonthlyEarning('June', 'UGX 58,000'),
-            _buildMonthlyEarning('July', 'UGX 60,000'),
-            _buildMonthlyEarning('August', 'UGX 62,000'),
-            _buildMonthlyEarning('September', 'UGX 65,000'),
           ],
         ),
       ),
@@ -450,70 +297,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(month, style: const TextStyle(fontWeight: FontWeight.w500)),
-          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+          Text(
+            amount,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+          ),
         ],
       ),
-    );
-  }
-
-  // MAP TAB
-  Widget _buildMapTab() {
-    return Stack(
-      children: [
-        _buildSafeGoogleMap(
-          initialPosition: const CameraPosition(
-            target: kampalaLocation,
-            zoom: 15,
-          ),
-          onMapCreated: (controller) {
-            setState(() {
-              _mapControllerMap = controller;
-            });
-          },
-          markers: {
-            const Marker(
-              markerId: MarkerId('myLocation'),
-              position: kampalaLocation,
-              infoWindow: InfoWindow(title: 'My Location'),
-            ),
-          },
-        ),
-        Positioned(
-          bottom: 16,
-          left: 16,
-          right: 16,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black12)],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Status', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text('Online', style: TextStyle(color: Colors.white, fontSize: 12)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                const Text('Distance Today: 45 km', style: TextStyle(fontSize: 14)),
-                const Text('Last Updated: 2 mins ago', style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -526,31 +315,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-            const Text('Performance Metrics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Performance Metrics',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             _buildMetricCard('Total Distance', '450 km', Colors.blue),
             _buildMetricCard('Active Days', '25 days', Colors.green),
             _buildMetricCard('Impressions', '1,250', Colors.orange),
-            const SizedBox(height: 24),
-            const Text('Earnings Trend', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Monthly Earnings Growth', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(height: 16),
-                  Text('📈 Trending Up 15% this month', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 12),
-                  Text('Last 30 days: UGX 185,000', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
-              ),
-            ),
           ],
         ),
       ),
@@ -568,9 +340,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
                 const SizedBox(height: 4),
-                Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
               ],
             ),
             Icon(Icons.trending_up, color: color, size: 32),
@@ -598,73 +380,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: const Icon(Icons.person, size: 50, color: Colors.blue),
                   ),
                   const SizedBox(height: 12),
-                  const Text('John Doe', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const Text('Kampala, Uganda', style: TextStyle(color: Colors.grey)),
+                  const Text(
+                    'John Doe',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const Text(
+                    'Kampala, Uganda',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('License Plate', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-                  Text('KLA 123X', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
-                  Text('MTN Mobile Money', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: const Text('EDIT PROFILE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                minimumSize: const Size(double.infinity, 48),
-              ),
-              child: const Text('DOCUMENT VERIFICATION', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-            const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () {
-                try {
-                  Navigator.pushReplacementNamed(context, '/role-selection');
-                } catch (e) {
-                  print('Navigation error: $e');
-                }
+                Navigator.pushReplacementNamed(context, '/role-selection');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 minimumSize: const Size(double.infinity, 48),
               ),
-              child: const Text('SIGN OUT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'SIGN OUT',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
