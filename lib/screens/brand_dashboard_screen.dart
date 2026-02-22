@@ -3,7 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'api_service.dart';
 
 class BrandDashboardScreen extends StatefulWidget {
-  const BrandDashboardScreen({Key? key}) : super(key: key);
+  final String? email;
+  
+  const BrandDashboardScreen({Key? key, this.email}) : super(key: key);
 
   @override
   State<BrandDashboardScreen> createState() => _BrandDashboardScreenState();
@@ -335,4 +337,3 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
     super.dispose();
   }
 }
-

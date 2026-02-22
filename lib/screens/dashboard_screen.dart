@@ -3,7 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'api_service.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  final String? email;
+  
+  const DashboardScreen({Key? key, this.email}) : super(key: key);
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
