@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'api_service.dart';
 
 class BrandCampaignCreationScreen extends StatefulWidget {
   const BrandCampaignCreationScreen({Key? key}) : super(key: key);
@@ -13,68 +14,21 @@ class _BrandCampaignCreationScreenState
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  // Form controllers
+  // Form controllers - matching database schema
   final _campaignNameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _budgetController = TextEditingController();
-  final _audienceController = TextEditingController();
-
-  // Date pickers
-  DateTime? _startDate;
-  DateTime? _endDate;
-  String _campaignType = 'Advertising';
-
-  final List<String> _campaignTypes = [
-    'Advertising',
-    'Brand Awareness',
-    'Lead Generation',
-    'Traffic',
-    'Conversions',
-    'App Installation',
-    'Video Views',
-    'Engagement',
-  ];
+  final _targetCityController = TextEditingController();
+  final _weeklyBudgetController = TextEditingController();
+  final _durationWeeksController = TextEditingController();
+  final _driverEarningsController = TextEditingController();
 
   @override
   void dispose() {
     _campaignNameController.dispose();
-    _descriptionController.dispose();
-    _budgetController.dispose();
-    _audienceController.dispose();
+    _targetCityController.dispose();
+    _weeklyBudgetController.dispose();
+    _durationWeeksController.dispose();
+    _driverEarningsController.dispose();
     super.dispose();
-  }
-
-  // Format date to readable string (without intl package)
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  Future<void> _selectStartDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _startDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2027),
-    );
-    if (picked != null && picked != _startDate) {
-      setState(() {
-        _startDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectEndDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _endDate ?? DateTime.now().add(const Duration(days: 7)),
-      firstDate: _startDate ?? DateTime.now(),
-      lastDate: DateTime(2027),
-    );
-    if (picked != null && picked != _endDate) {
-      setState(() {
-        _endDate = picked;
-      });
-    }
   }
 
   void _submitCampaign() async {
@@ -82,50 +36,59 @@ class _BrandCampaignCreationScreenState
       return;
     }
 
-    if (_startDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select start date')),
-      );
-      return;
-    }
-
-    if (_endDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select end date')),
-      );
-      return;
-    }
-
-    if (_endDate!.isBefore(_startDate!)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('End date must be after start date')),
-      );
-      return;
-    }
-
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Get current user and their brand ID
+      final userId = await ApiService.getCurrentUserId();
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: User not authenticated')),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
 
-    if (!mounted) return;
+      final brandId = await ApiService.getBrandIdForUser(userId);
+      if (brandId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: Brand profile not found')),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
 
-    // Pass campaign data to preview screen
-    final campaignData = {
-      'name': _campaignNameController.text,
-      'type': _campaignType,
-      'description': _descriptionController.text,
-      'budget': _budgetController.text,
-      'audience': _audienceController.text,
-      'startDate': _formatDate(_startDate!),
-      'endDate': _formatDate(_endDate!),
-    };
+      // Create campaign in Supabase
+      final success = await _supabase.client.from('campaigns').insert({
+        'brand_id': brandId,
+        'campaign_name': _campaignNameController.text,
+        'target_city': _targetCityController.text,
+        'weekly_budget': double.parse(_weeklyBudgetController.text),
+        'campaign_duration_weeks': int.parse(_durationWeeksController.text),
+        'driver_earnings_per_week': double.parse(_driverEarningsController.text),
+      });
 
-    Navigator.pushNamed(
-      context,
-      '/campaign-preview',
-      arguments: campaignData,
-    );
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Campaign created successfully!')),
+      );
+
+      // Clear form and navigate back
+      _campaignNameController.clear();
+      _targetCityController.clear();
+      _weeklyBudgetController.clear();
+      _durationWeeksController.clear();
+      _driverEarningsController.clear();
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error creating campaign: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -145,13 +108,13 @@ class _BrandCampaignCreationScreenState
               // Campaign Name
               const Text(
                 'Campaign Name *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _campaignNameController,
                 decoration: InputDecoration(
-                  hintText: 'Enter campaign name',
+                  hintText: 'e.g., Summer Sale 2026',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -166,72 +129,41 @@ class _BrandCampaignCreationScreenState
               ),
               const SizedBox(height: 20),
 
-              // Campaign Type
+              // Target City
               const Text(
-                'Campaign Type *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: _campaignType,
-                onChanged: (value) {
-                  setState(() => _campaignType = value ?? 'Advertising');
-                },
-                items: _campaignTypes.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type),
-                  );
-                }).toList(),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  prefixIcon: const Icon(Icons.category),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Description
-              const Text(
-                'Description *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                'Target City *',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _descriptionController,
+                controller: _targetCityController,
                 decoration: InputDecoration(
-                  hintText: 'Describe your campaign',
+                  hintText: 'e.g., Kampala',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: const Icon(Icons.description),
+                  prefixIcon: const Icon(Icons.location_on),
                 ),
-                minLines: 3,
-                maxLines: 5,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Description is required';
-                  }
-                  if (value.length < 10) {
-                    return 'Description must be at least 10 characters';
+                    return 'Target city is required';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
 
-              // Budget
+              // Weekly Budget
               const Text(
-                'Budget (USD) *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                'Weekly Budget (USD) *',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _budgetController,
-                keyboardType: TextInputType.number,
+                controller: _weeklyBudgetController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  hintText: 'Enter budget amount',
+                  hintText: 'e.g., 200',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -239,117 +171,82 @@ class _BrandCampaignCreationScreenState
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Budget is required';
+                    return 'Weekly budget is required';
                   }
                   if (double.tryParse(value) == null) {
                     return 'Please enter a valid number';
                   }
-                  if (double.parse(value) <= 0) {
-                    return 'Budget must be greater than 0';
-                  }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
 
-              // Target Audience
+              // Campaign Duration (Weeks)
               const Text(
-                'Target Audience *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                'Campaign Duration (Weeks) *',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _audienceController,
+                controller: _durationWeeksController,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  hintText: 'e.g., Males 25-40, Interested in technology',
+                  hintText: 'e.g., 4',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: const Icon(Icons.people),
+                  prefixIcon: const Icon(Icons.date_range),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Target audience is required';
+                    return 'Campaign duration is required';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  if (int.parse(value) < 1) {
+                    return 'Duration must be at least 1 week';
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 20),
 
-              // Start Date
+              // Driver Earnings Per Week
               const Text(
-                'Start Date *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                'Driver Earnings Per Week (USD) *',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () => _selectStartDate(context),
-                child: Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+              TextFormField(
+                controller: _driverEarningsController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  hintText: 'e.g., 150',
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.calendar_today, color: Colors.grey),
-                      const SizedBox(width: 10),
-                      Text(
-                        _startDate == null
-                            ? 'Select start date'
-                            : _formatDate(_startDate!),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _startDate == null ? Colors.grey : Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
+                  prefixIcon: const Icon(Icons.monetization_on),
                 ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Driver earnings is required';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
 
-              // End Date
-              const Text(
-                'End Date *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () => _selectEndDate(context),
-                child: Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.calendar_today, color: Colors.grey),
-                      const SizedBox(width: 10),
-                      Text(
-                        _endDate == null
-                            ? 'Select end date'
-                            : _formatDate(_endDate!),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _endDate == null ? Colors.grey : Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              // CONTINUE Button
+              // Submit Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitCampaign,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E3A8A),
-                    disabledBackgroundColor: Colors.grey,
+                    backgroundColor: const Color(0xFF003d99),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -360,41 +257,18 @@ class _BrandCampaignCreationScreenState
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
                             strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Text(
-                          'CONTINUE',
+                          'CREATE CAMPAIGN',
                           style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Back Button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'BACK',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ),
             ],
@@ -403,4 +277,9 @@ class _BrandCampaignCreationScreenState
       ),
     );
   }
+
+  // Get Supabase client
+  static final _supabase = Supabase.instance.client;
 }
+
+import 'package:supabase_flutter/supabase_flutter.dart';
