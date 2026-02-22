@@ -4,8 +4,9 @@ import 'api_service.dart';
 
 class BrandDashboardScreen extends StatefulWidget {
   final String? email;
+  final String? userRole;
   
-  const BrandDashboardScreen({Key? key, this.email}) : super(key: key);
+  const BrandDashboardScreen({Key? key, this.email, this.userRole}) : super(key: key);
 
   @override
   State<BrandDashboardScreen> createState() => _BrandDashboardScreenState();

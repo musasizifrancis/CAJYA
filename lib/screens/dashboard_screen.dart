@@ -4,8 +4,9 @@ import 'api_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String? email;
+  final String? userRole;
   
-  const DashboardScreen({Key? key, this.email}) : super(key: key);
+  const DashboardScreen({Key? key, this.email, this.userRole}) : super(key: key);
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
