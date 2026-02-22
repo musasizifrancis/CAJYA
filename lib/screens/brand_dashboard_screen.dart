@@ -66,9 +66,9 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
   Widget _buildCreateCampaign() {
     final nameController = TextEditingController();
     final cityController = TextEditingController();
-    final descController = TextEditingController();
-    final budgetController = TextEditingController();
-    final durationController = TextEditingController();
+    final weeklyBudgetController = TextEditingController();
+    final durationWeeksController = TextEditingController();
+    final driverEarningsController = TextEditingController();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -97,28 +97,28 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
           ),
           const SizedBox(height: 16),
           TextField(
-            controller: descController,
-            maxLines: 3,
+            controller: weeklyBudgetController,
+            keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'Description',
+              labelText: 'Weekly Budget (USD)',
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
           TextField(
-            controller: budgetController,
+            controller: durationWeeksController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'Budget (USD)',
+              labelText: 'Campaign Duration (Weeks)',
               border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
           TextField(
-            controller: durationController,
+            controller: driverEarningsController,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'Duration (Days)',
+              labelText: 'Driver Earnings Per Week (USD)',
               border: OutlineInputBorder(),
             ),
           ),
@@ -127,9 +127,9 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
             onPressed: () => _createCampaign(
               nameController.text,
               cityController.text,
-              descController.text,
-              budgetController.text,
-              durationController.text,
+              weeklyBudgetController.text,
+              durationWeeksController.text,
+              driverEarningsController.text,
             ),
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 50),
@@ -144,12 +144,12 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
   void _createCampaign(
     String name,
     String city,
-    String desc,
-    String budget,
-    String duration,
+    String weeklyBudget,
+    String durationWeeks,
+    String driverEarnings,
   ) async {
     if (_brandId == null) return;
-    if (name.isEmpty || city.isEmpty || budget.isEmpty || duration.isEmpty) {
+    if (name.isEmpty || city.isEmpty || weeklyBudget.isEmpty || durationWeeks.isEmpty || driverEarnings.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('All fields are required')),
       );
@@ -160,8 +160,8 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
       brandId: _brandId!,
       campaignName: name,
       targetCity: city,
-      weeklyBudget: double.parse(budget),
-      campaignDurationWeeks: int.parse(duration),
+      weeklyBudget: double.parse(weeklyBudget),
+      campaignDurationWeeks: int.parse(durationWeeks),
       driverEarningsPerWeek: double.parse(driverEarnings),
     );
 
@@ -186,7 +186,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
           children: [
             const Text('Brand profile not found'),
             const SizedBox(height: 8),
-            const Text('User ID: $_userId'),
+            Text('User ID: $_userId'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _initializeUser(),
@@ -292,7 +292,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
           children: [
             const Text('Brand profile not found'),
             const SizedBox(height: 8),
-            const Text('User ID: $_userId'),
+            Text('User ID: $_userId'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _initializeUser(),
