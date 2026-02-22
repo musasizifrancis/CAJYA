@@ -160,9 +160,9 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
       brandId: _brandId!,
       campaignName: name,
       targetCity: city,
-      description: desc,
-      budget: double.parse(budget),
-      durationDays: int.parse(duration),
+      weeklyBudget: double.parse(budget),
+      campaignDurationWeeks: int.parse(duration),
+      driverEarningsPerWeek: double.parse(driverEarnings),
     );
 
     if (success) {
@@ -179,7 +179,23 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
 
   // TAB 2: ACTIVE CAMPAIGNS
   Widget _buildActiveCampaigns() {
-    if (_brandId == null) return const Center(child: Text('Error loading brand'));
+    if (_brandId == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Brand profile not found'),
+            const SizedBox(height: 8),
+            const Text('User ID: $_userId'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _initializeUser(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
 
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: ApiService.getCampaignsByBrand(_brandId!),
@@ -269,7 +285,23 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
 
   // TAB 3: COMPLETED CAMPAIGNS
   Widget _buildCompletedCampaigns() {
-    if (_brandId == null) return const Center(child: Text('Error loading brand'));
+    if (_brandId == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Brand profile not found'),
+            const SizedBox(height: 8),
+            const Text('User ID: $_userId'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _initializeUser(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
 
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: ApiService.getCampaignsByBrand(_brandId!),
