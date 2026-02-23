@@ -169,10 +169,11 @@ class ApiService {
       final result = List<Map<String, dynamic>>.from(assignments);
       print('DEBUG: Returning ${result.length} assignments');
       return result;
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('ERROR getting assignments: $e');
-      print('ERROR stack: ${StackTrace.current}');
-      return [];
+      print('ERROR stack: $stackTrace');
+      // Return error info so UI can show it
+      return [{'error': true, 'message': 'Error loading assignments: $e'}];
     }
   }
 
