@@ -252,40 +252,77 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
   }
 
   void _viewAssignments(String campaignId) async {
-    print('DEBUG BRAND: Viewing assignments for campaign: $campaignId');
     final assignments = await ApiService.getCampaignAssignments(campaignId);
-    print('DEBUG BRAND: Got ${assignments.length} assignments');
-    if (assignments.isNotEmpty) {
-      print('DEBUG BRAND: First assignment: ${assignments[0]}');
+    
+    if (!mounted) return;
+    
+    // Check for error
+    if (assignments.isNotEmpty && assignments[0]['error'] == true) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('${assignments[0]['message']}'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
     }
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Assigned Drivers'),
         content: SizedBox(
           width: double.maxFinite,
-          child: assignments.isEmpty
-              ? const Text('No drivers assigned yet')
-              : ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: assignments.length,
-                  itemBuilder: (context, index) {
-                    final assignment = assignments[index];
-                    print('DEBUG BRAND: Processing assignment[$index]: $assignment');
-                    final driverProfile = assignment['driver_profiles'] as Map<String, dynamic>?;
-                    print('DEBUG BRAND: Driver profile[$index]: $driverProfile');
-                    final users = driverProfile?['users'] as Map<String, dynamic>?;
-                    print('DEBUG BRAND: Users[$index]: $users');
-                    final driverName = users?['full_name'] ?? 'Unknown Driver';
-                    final driverEmail = users?['email'] ?? '';
-                    final status = assignment['status'] ?? 'active';
-                    print('DEBUG BRAND: Display name[$index]: $driverName, email: $driverEmail');
-                    return ListTile(
-                      title: Text(driverName),
-                      subtitle: Text('$driverEmail • Status: $status'),
-                    );
-                  },
-                ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('DEBUG: Campaign ID: $campaignId', 
+                  style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                Text('DEBUG: Assignments count: ${assignments.length}', 
+                  style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                if (assignments.isNotEmpty)
+                  Text('DEBUG: First assignment keys: ${assignments[0].keys.toString()}', 
+                    style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                const SizedBox(height: 16),
+                if (assignments.isEmpty)
+                  const Text('No drivers assigned yet')
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: assignments.length,
+                    itemBuilder: (context, index) {
+                      final assignment = assignments[index];
+                      final driverProfile = assignment['driver_profiles'] as Map<String, dynamic>?;
+                      final users = driverProfile?['users'] as Map<String, dynamic>?;
+                      final driverName = users?['full_name'] ?? 'Unknown Driver';
+                      final driverEmail = users?['email'] ?? '';
+                      final status = assignment['status'] ?? 'active';
+                      
+                      return Column(
+                        children: [
+                          ListTile(
+                            title: Text(driverName),
+                            subtitle: Text('$driverEmail • Status: $status'),
+                          ),
+                          if (index < assignments.length - 1)
+                            const Divider(),
+                        ],
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
         ),
         actions: [
           TextButton(
