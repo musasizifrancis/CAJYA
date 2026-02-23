@@ -289,20 +289,40 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
                   style: const TextStyle(fontSize: 10, color: Colors.grey)),
                 Text('DEBUG: Assignments count: ${assignments.length}', 
                   style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                if (assignments.isNotEmpty && assignments[0].containsKey('__debug_info'))
+                // Check for error responses
+                if (assignments.isNotEmpty && assignments[0].containsKey('__error'))
                   ...[
-                    const SizedBox(height: 8),
-                    Text('API URL:', style: const TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
-                    Text('${assignments[0]['__debug_info']['url'] ?? 'N/A'}', 
-                      style: const TextStyle(fontSize: 8, color: Colors.grey),
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis),
-                  ],
-                if (assignments.isNotEmpty)
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        border: Border.all(color: Colors.red),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('⚠️ ERROR', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text('${assignments[0]['__message'] ?? 'Unknown error'}', 
+                            style: const TextStyle(fontSize: 11, color: Colors.red)),
+                          if (assignments[0].containsKey('__type'))
+                            Text('Type: ${assignments[0]['__type']}', 
+                              style: const TextStyle(fontSize: 9, color: Colors.red)),
+                          if (assignments[0].containsKey('__body'))
+                            Text('Details: ${assignments[0]['__body']}', 
+                              style: const TextStyle(fontSize: 9, color: Colors.red), 
+                              maxLines: 3, 
+                              overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
+                    ),
+                  ]
+                else if (assignments.isNotEmpty)
                   Text('DEBUG: First assignment keys: ${assignments[0].keys.toString()}', 
                     style: const TextStyle(fontSize: 10, color: Colors.grey)),
                 const SizedBox(height: 16),
-                if (assignments.isEmpty)
+                if (assignments.isEmpty || (assignments.isNotEmpty && assignments[0].containsKey('__error')))
                   const Text('No drivers assigned yet')
                 else
                   ListView.builder(
