@@ -252,7 +252,12 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
   }
 
   void _viewAssignments(String campaignId) async {
+    print('DEBUG BRAND: Viewing assignments for campaign: $campaignId');
     final assignments = await ApiService.getCampaignAssignments(campaignId);
+    print('DEBUG BRAND: Got ${assignments.length} assignments');
+    if (assignments.isNotEmpty) {
+      print('DEBUG BRAND: First assignment: ${assignments[0]}');
+    }
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -266,11 +271,15 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
                   itemCount: assignments.length,
                   itemBuilder: (context, index) {
                     final assignment = assignments[index];
+                    print('DEBUG BRAND: Processing assignment[$index]: $assignment');
                     final driverProfile = assignment['driver_profiles'] as Map<String, dynamic>?;
+                    print('DEBUG BRAND: Driver profile[$index]: $driverProfile');
                     final users = driverProfile?['users'] as Map<String, dynamic>?;
+                    print('DEBUG BRAND: Users[$index]: $users');
                     final driverName = users?['full_name'] ?? 'Unknown Driver';
                     final driverEmail = users?['email'] ?? '';
                     final status = assignment['status'] ?? 'active';
+                    print('DEBUG BRAND: Display name[$index]: $driverName, email: $driverEmail');
                     return ListTile(
                       title: Text(driverName),
                       subtitle: Text('$driverEmail • Status: $status'),
