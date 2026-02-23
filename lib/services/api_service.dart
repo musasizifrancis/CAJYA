@@ -161,31 +161,37 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> getCampaignAssignments(String campaignId) async {
     try {
       print('DEBUG: Fetching assignments for campaign: $campaignId');
-      print('DEBUG: Using URL: $SUPABASE_URL/rest/v1/campaign_assignments?campaign_id=eq.$campaignId');
-      print('DEBUG: Using API Key: $SUPABASE_KEY');
       
       // Use REST API directly - it's more reliable than Flutter SDK
       final url = Uri.parse(
         '$SUPABASE_URL/rest/v1/campaign_assignments?campaign_id=eq.$campaignId'
       );
       
-      print('DEBUG: Making HTTP GET request to $url');
+      print('DEBUG: Making HTTP GET to: $url');
+      print('DEBUG: Using API Key: ${SUPABASE_KEY.substring(0, 20)}...');
       
       final response = await http.get(
         url,
         headers: {
           'apikey': SUPABASE_KEY,
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          print('ERROR: HTTP request timed out after 10 seconds');
+          return http.Response('{"error":"timeout"}', 408);
+        }
       );
       
       print('DEBUG: API Response Status: ${response.statusCode}');
-      print('DEBUG: API Response Body: ${response.body}');
-      print('DEBUG: API Response Headers: ${response.headers}');
+      print('DEBUG: API Response Length: ${response.body.length}');
+      print('DEBUG: API Response Body (first 500 chars): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
       
       if (response.statusCode != 200) {
-        print('ERROR: API returned ${response.statusCode}');
-        return [{'error': true, 'message': 'API Error: ${response.statusCode}'}];
+        print('ERROR: API returned ${response.statusCode}: ${response.body}');
+        return [{'__error': true, '__message': 'API Error ${response.statusCode}', '__body': response.body.substring(0, 200)}];
       }
       
       final assignments = jsonDecode(response.body) as List;
@@ -251,22 +257,12 @@ class ApiService {
       }
       
       print('DEBUG: Returning ${enrichedAssignments.length} enriched assignments');
-      
-      // Add debug info to the result
-      if (enrichedAssignments.isNotEmpty) {
-        enrichedAssignments[0]['__debug_info'] = {
-          'campaign_id': campaignId,
-          'assignments_count': enrichedAssignments.length,
-          'url': '\$SUPABASE_URL/rest/v1/campaign_assignments?campaign_id=eq.\$campaignId',
-          'api_key_prefix': SUPABASE_KEY.substring(0, 20) + '...',
-        };
-      }
       return enrichedAssignments;
     } catch (e, stackTrace) {
       print('ERROR getting assignments: $e');
       print('ERROR stack: $stackTrace');
       // Return error info so UI can show it
-      return [{'error': true, 'message': 'Error loading assignments: $e'}];
+      return [{'__error': true, '__message': 'Error: $e', '__type': e.runtimeType.toString()}];
     }
   }
 
