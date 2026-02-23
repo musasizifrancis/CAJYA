@@ -156,13 +156,22 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>> getCampaignAssignments(String campaignId) async {
     try {
+      print('DEBUG: Fetching assignments for campaign: $campaignId');
       final assignments = await _supabase.client
           .from('campaign_assignments')
           .select('*, driver_profiles(*, users:user_id(*))')
           .eq('campaign_id', campaignId);
-      return List<Map<String, dynamic>>.from(assignments);
+      print('DEBUG: Raw assignments response: $assignments');
+      print('DEBUG: Assignments count: ${assignments.length}');
+      for (var i = 0; i < assignments.length; i++) {
+        print('DEBUG: Assignment[$i]: ${assignments[i]}');
+      }
+      final result = List<Map<String, dynamic>>.from(assignments);
+      print('DEBUG: Returning ${result.length} assignments');
+      return result;
     } catch (e) {
       print('ERROR getting assignments: $e');
+      print('ERROR stack: ${StackTrace.current}');
       return [];
     }
   }
