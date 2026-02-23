@@ -267,11 +267,13 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
                   itemBuilder: (context, index) {
                     final assignment = assignments[index];
                     final driverProfile = assignment['driver_profiles'] as Map<String, dynamic>?;
-                    final driverName = driverProfile?['user']?['full_name'] ?? 'Unknown Driver';
+                    final users = driverProfile?['users'] as Map<String, dynamic>?;
+                    final driverName = users?['full_name'] ?? 'Unknown Driver';
+                    final driverEmail = users?['email'] ?? '';
                     final status = assignment['status'] ?? 'active';
                     return ListTile(
                       title: Text(driverName),
-                      subtitle: Text('Status: $status'),
+                      subtitle: Text('$driverEmail • Status: $status'),
                     );
                   },
                 ),
