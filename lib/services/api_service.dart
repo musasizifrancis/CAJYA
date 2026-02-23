@@ -161,11 +161,15 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> getCampaignAssignments(String campaignId) async {
     try {
       print('DEBUG: Fetching assignments for campaign: $campaignId');
+      print('DEBUG: Using URL: $SUPABASE_URL/rest/v1/campaign_assignments?campaign_id=eq.$campaignId');
+      print('DEBUG: Using API Key: $SUPABASE_KEY');
       
       // Use REST API directly - it's more reliable than Flutter SDK
       final url = Uri.parse(
         '$SUPABASE_URL/rest/v1/campaign_assignments?campaign_id=eq.$campaignId'
       );
+      
+      print('DEBUG: Making HTTP GET request to $url');
       
       final response = await http.get(
         url,
@@ -177,6 +181,7 @@ class ApiService {
       
       print('DEBUG: API Response Status: ${response.statusCode}');
       print('DEBUG: API Response Body: ${response.body}');
+      print('DEBUG: API Response Headers: ${response.headers}');
       
       if (response.statusCode != 200) {
         print('ERROR: API returned ${response.statusCode}');
