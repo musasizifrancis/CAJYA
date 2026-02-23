@@ -244,7 +244,9 @@ class ApiService {
                 final users = jsonDecode(userResp.body) as List;
                 if (users.isNotEmpty) {
                   assignmentMap['driver_profiles'] = driverProfile;
-                  assignmentMap['users'] = users[0];
+                  // CRITICAL: Nest users inside driver_profiles so UI can find it
+                  assignmentMap['driver_profiles']['users'] = users[0];
+                  print('DEBUG: Nested users inside driver_profiles successfully');
                 }
               }
             }
