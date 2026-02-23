@@ -251,6 +251,16 @@ class ApiService {
       }
       
       print('DEBUG: Returning ${enrichedAssignments.length} enriched assignments');
+      
+      // Add debug info to the result
+      if (enrichedAssignments.isNotEmpty) {
+        enrichedAssignments[0]['__debug_info'] = {
+          'campaign_id': campaignId,
+          'assignments_count': enrichedAssignments.length,
+          'url': '\$SUPABASE_URL/rest/v1/campaign_assignments?campaign_id=eq.\$campaignId',
+          'api_key_prefix': SUPABASE_KEY.substring(0, 20) + '...',
+        };
+      }
       return enrichedAssignments;
     } catch (e, stackTrace) {
       print('ERROR getting assignments: $e');
