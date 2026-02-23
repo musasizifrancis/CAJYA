@@ -1,7 +1,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ApiService {
   static final Supabase _supabase = Supabase.instance;
+  static const String SUPABASE_URL = 'https://nrwfehkdvaujcypvddhq.supabase.co';
+  static const String SUPABASE_KEY = 'sb_publishable_F7T3fQPmz6Zq1bFK25W4XQ_UP8ulQqG';
 
   // GET CURRENT USER
   static Future<String?> getCurrentUserId() async {
@@ -158,13 +162,30 @@ class ApiService {
     try {
       print('DEBUG: Fetching assignments for campaign: $campaignId');
       
-      // First, get basic assignments
-      final assignments = await _supabase.client
-          .from('campaign_assignments')
-          .select()
-          .eq('campaign_id', campaignId);
+      // Use REST API directly - it's more reliable than Flutter SDK
+      final url = Uri.parse(
+        '$SUPABASE_URL/rest/v1/campaign_assignments?campaign_id=eq.$campaignId'
+      );
       
+      final response = await http.get(
+        url,
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Content-Type': 'application/json',
+        },
+      );
+      
+      print('DEBUG: API Response Status: ${response.statusCode}');
+      print('DEBUG: API Response Body: ${response.body}');
+      
+      if (response.statusCode != 200) {
+        print('ERROR: API returned ${response.statusCode}');
+        return [{'error': true, 'message': 'API Error: ${response.statusCode}'}];
+      }
+      
+      final assignments = jsonDecode(response.body) as List;
       print('DEBUG: Raw assignments count: ${assignments.length}');
+      
       if (assignments.isEmpty) {
         print('DEBUG: No assignments found for this campaign');
         return [];
@@ -174,32 +195,53 @@ class ApiService {
       List<Map<String, dynamic>> enrichedAssignments = [];
       for (var assignment in assignments) {
         try {
-          final driverId = assignment['driver_id'];
+          final assignmentMap = assignment as Map<String, dynamic>;
+          final driverId = assignmentMap['driver_id'];
           print('DEBUG: Fetching driver details for driver_id: $driverId');
           
-          final driverProfiles = await _supabase.client
-              .from('driver_profiles')
-              .select()
-              .eq('id', driverId);
+          // Get driver profile
+          final driverUrl = Uri.parse(
+            '$SUPABASE_URL/rest/v1/driver_profiles?id=eq.$driverId'
+          );
+          final driverResp = await http.get(
+            driverUrl,
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Content-Type': 'application/json',
+            },
+          );
           
-          if (driverProfiles.isNotEmpty) {
-            final driverProfile = driverProfiles[0];
-            final userId = driverProfile['user_id'];
-            
-            final users = await _supabase.client
-                .from('users')
-                .select()
-                .eq('id', userId);
-            
-            if (users.isNotEmpty) {
-              assignment['driver_profiles'] = driverProfile;
-              assignment['users'] = users[0];
+          if (driverResp.statusCode == 200) {
+            final driverProfiles = jsonDecode(driverResp.body) as List;
+            if (driverProfiles.isNotEmpty) {
+              final driverProfile = driverProfiles[0] as Map<String, dynamic>;
+              final userId = driverProfile['user_id'];
+              
+              // Get user details
+              final userUrl = Uri.parse(
+                '$SUPABASE_URL/rest/v1/users?id=eq.$userId'
+              );
+              final userResp = await http.get(
+                userUrl,
+                headers: {
+                  'apikey': SUPABASE_KEY,
+                  'Content-Type': 'application/json',
+                },
+              );
+              
+              if (userResp.statusCode == 200) {
+                final users = jsonDecode(userResp.body) as List;
+                if (users.isNotEmpty) {
+                  assignmentMap['driver_profiles'] = driverProfile;
+                  assignmentMap['users'] = users[0];
+                }
+              }
             }
           }
-          enrichedAssignments.add(assignment);
+          enrichedAssignments.add(assignmentMap);
         } catch (e) {
           print('ERROR enriching assignment: $e');
-          enrichedAssignments.add(assignment);
+          enrichedAssignments.add(assignment as Map<String, dynamic>);
         }
       }
       
