@@ -289,6 +289,15 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
                   style: const TextStyle(fontSize: 10, color: Colors.grey)),
                 Text('DEBUG: Assignments count: ${assignments.length}', 
                   style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                if (assignments.isNotEmpty && assignments[0].containsKey('__debug_info'))
+                  ...[
+                    const SizedBox(height: 8),
+                    Text('API URL:', style: const TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold)),
+                    Text('${assignments[0]['__debug_info']['url'] ?? 'N/A'}', 
+                      style: const TextStyle(fontSize: 8, color: Colors.grey),
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis),
+                  ],
                 if (assignments.isNotEmpty)
                   Text('DEBUG: First assignment keys: ${assignments[0].keys.toString()}', 
                     style: const TextStyle(fontSize: 10, color: Colors.grey)),
