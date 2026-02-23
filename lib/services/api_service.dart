@@ -157,18 +157,54 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> getCampaignAssignments(String campaignId) async {
     try {
       print('DEBUG: Fetching assignments for campaign: $campaignId');
+      
+      // First, get basic assignments
       final assignments = await _supabase.client
           .from('campaign_assignments')
-          .select('*, driver_profiles(*, users:user_id(*))')
+          .select()
           .eq('campaign_id', campaignId);
-      print('DEBUG: Raw assignments response: $assignments');
-      print('DEBUG: Assignments count: ${assignments.length}');
-      for (var i = 0; i < assignments.length; i++) {
-        print('DEBUG: Assignment[$i]: ${assignments[i]}');
+      
+      print('DEBUG: Raw assignments count: ${assignments.length}');
+      if (assignments.isEmpty) {
+        print('DEBUG: No assignments found for this campaign');
+        return [];
       }
-      final result = List<Map<String, dynamic>>.from(assignments);
-      print('DEBUG: Returning ${result.length} assignments');
-      return result;
+      
+      // Now fetch driver details for each assignment
+      List<Map<String, dynamic>> enrichedAssignments = [];
+      for (var assignment in assignments) {
+        try {
+          final driverId = assignment['driver_id'];
+          print('DEBUG: Fetching driver details for driver_id: $driverId');
+          
+          final driverProfiles = await _supabase.client
+              .from('driver_profiles')
+              .select()
+              .eq('id', driverId);
+          
+          if (driverProfiles.isNotEmpty) {
+            final driverProfile = driverProfiles[0];
+            final userId = driverProfile['user_id'];
+            
+            final users = await _supabase.client
+                .from('users')
+                .select()
+                .eq('id', userId);
+            
+            if (users.isNotEmpty) {
+              assignment['driver_profiles'] = driverProfile;
+              assignment['users'] = users[0];
+            }
+          }
+          enrichedAssignments.add(assignment);
+        } catch (e) {
+          print('ERROR enriching assignment: $e');
+          enrichedAssignments.add(assignment);
+        }
+      }
+      
+      print('DEBUG: Returning ${enrichedAssignments.length} enriched assignments');
+      return enrichedAssignments;
     } catch (e, stackTrace) {
       print('ERROR getting assignments: $e');
       print('ERROR stack: $stackTrace');
