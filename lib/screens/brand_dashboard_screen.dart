@@ -266,9 +266,12 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
                   itemCount: assignments.length,
                   itemBuilder: (context, index) {
                     final assignment = assignments[index];
+                    final driverProfile = assignment['driver_profiles'] as Map<String, dynamic>?;
+                    final driverName = driverProfile?['user']?['full_name'] ?? 'Unknown Driver';
+                    final status = assignment['status'] ?? 'active';
                     return ListTile(
-                      title: Text(assignment['status'] ?? 'active'),
-                      subtitle: const Text('Driver assigned'),
+                      title: Text(driverName),
+                      subtitle: Text('Status: $status'),
                     );
                   },
                 ),

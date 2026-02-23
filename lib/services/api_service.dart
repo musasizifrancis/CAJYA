@@ -158,10 +158,11 @@ class ApiService {
     try {
       final assignments = await _supabase.client
           .from('campaign_assignments')
-          .select('*, driver_profile(*)')
+          .select('*, driver_profiles(*)')
           .eq('campaign_id', campaignId);
       return List<Map<String, dynamic>>.from(assignments);
     } catch (e) {
+      print('ERROR getting assignments: $e');
       return [];
     }
   }
