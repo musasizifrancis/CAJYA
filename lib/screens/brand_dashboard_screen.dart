@@ -1,249 +1,81 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'api_service.dart';
+import 'package:cajya/services/api_service.dart';
 
 class BrandDashboardScreen extends StatefulWidget {
-  final String? email;
-  final String? userRole;
-  
-  const BrandDashboardScreen({Key? key, this.email, this.userRole}) : super(key: key);
+  final String userEmail;
+  final String userId;
+  final String brandName;
+
+  const BrandDashboardScreen({
+    required this.userEmail,
+    required this.userId,
+    required this.brandName,
+  });
 
   @override
   State<BrandDashboardScreen> createState() => _BrandDashboardScreenState();
 }
 
-class _BrandDashboardScreenState extends State<BrandDashboardScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  String? _brandId;
-  String? _userId;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-    _initializeUser();  // This is async but we don't need to await
-  }
-
-  Future<void> _initializeUser() async {
-    _userId = Supabase.instance.client.auth.currentUser?.id;
-    if (_userId != null) {
-      _brandId = await ApiService.getBrandIdForUser(_userId!);
-      setState(() {});
-    }
-  }
+class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
+  int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Brand Dashboard'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Create'),
-            Tab(text: 'Active'),
-            Tab(text: 'Completed'),
-            Tab(text: 'Messages'),
-            Tab(text: 'Analytics'),
-          ],
-        ),
+        title: Text('${widget.brandName} Dashboard'),
+        backgroundColor: Colors.blue[700],
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildCreateCampaign(),
-          _buildActiveCampaigns(),
-          _buildCompletedCampaigns(),
-          _buildMessages(),
-          _buildAnalytics(),
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Create Campaign'),
+          BottomNavigationBarItem(icon: Icon(Icons.play_circle), label: 'Active Campaigns'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Completed'),
+          BottomNavigationBarItem(icon: Icon(Icons.message), label: 'Messages'),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Analytics'),
         ],
       ),
     );
   }
 
-  // TAB 1: CREATE CAMPAIGN
-  Widget _buildCreateCampaign() {
-    final nameController = TextEditingController();
-    final cityController = TextEditingController();
-    final weeklyBudgetController = TextEditingController();
-    final durationWeeksController = TextEditingController();
-    final driverEarningsController = TextEditingController();
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0: return _buildCreateCampaignTab();
+      case 1: return _buildActiveCampaignsTab();
+      case 2: return _buildCompletedCampaignsTab();
+      case 3: return _buildMessagesTab();
+      case 4: return _buildAnalyticsTab();
+      default: return const SizedBox.shrink();
+    }
+  }
 
+  // CREATE CAMPAIGN TAB
+  Widget _buildCreateCampaignTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Create New Campaign',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Campaign Name',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: cityController,
-            decoration: const InputDecoration(
-              labelText: 'Target City',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: weeklyBudgetController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Weekly Budget (USD)',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: durationWeeksController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Campaign Duration (Weeks)',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: driverEarningsController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Driver Earnings Per Week (USD)',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => _createCampaign(
-              nameController.text,
-              cityController.text,
-              weeklyBudgetController.text,
-              durationWeeksController.text,
-              driverEarningsController.text,
-            ),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-            ),
-            child: const Text('Create Campaign'),
-          ),
-        ],
-      ),
+      child: CreateCampaignForm(userId: widget.userId),
     );
   }
 
-  void _createCampaign(
-    String name,
-    String city,
-    String weeklyBudget,
-    String durationWeeks,
-    String driverEarnings,
-  ) async {
-    if (_brandId == null) return;
-    if (name.isEmpty || city.isEmpty || weeklyBudget.isEmpty || durationWeeks.isEmpty || driverEarnings.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All fields are required')),
-      );
-      return;
-    }
-
-    final success = await ApiService.createCampaign(
-      brandId: _brandId!,
-      campaignName: name,
-      targetCity: city,
-      weeklyBudget: double.parse(weeklyBudget),
-      campaignDurationWeeks: int.parse(durationWeeks),
-      driverEarningsPerWeek: double.parse(driverEarnings),
-    );
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Campaign created!')),
-      );
-      setState(() {});
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to create campaign')),
-      );
-    }
-  }
-
-  // TAB 2: ACTIVE CAMPAIGNS
-  Widget _buildActiveCampaigns() {
-    if (_brandId == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Brand profile not found'),
-            const SizedBox(height: 8),
-            Text('User ID: $_userId'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _initializeUser(),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
+  // ACTIVE CAMPAIGNS TAB
+  Widget _buildActiveCampaignsTab() {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: ApiService.getCampaignsByBrand(_brandId!),
+      future: ApiService().getActiveCampaigns(widget.userId),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No active campaigns'));
-        }
-
-        // Filter only active campaigns
-        final activeCampaigns = snapshot.data!
-            .where((c) => c['status'] == 'active' || c['status'] == null)
-            .toList();
-
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final campaigns = snapshot.data!;
+        if (campaigns.isEmpty) return const Center(child: Text('No active campaigns'));
+        
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: activeCampaigns.length,
+          itemCount: campaigns.length,
           itemBuilder: (context, index) {
-            final campaign = activeCampaigns[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      campaign['campaign_name'] ?? 'Unknown',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('Location: ${campaign['target_city'] ?? 'Unknown'}'),
-                    Text('Description: ${campaign['description'] ?? 'N/A'}'),
-                    Text('Budget: \$${campaign['budget'] ?? 'N/A'}'),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () => _viewAssignments(campaign['id']),
-                      child: const Text('View Drivers'),
-                    ),
-                  ],
-                ),
-              ),
+            final campaign = campaigns[index];
+            return CampaignCard(
+              campaign: campaign,
+              onViewDrivers: () => _showAssignmentsDialog(campaign),
             );
           },
         );
@@ -251,257 +83,168 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
     );
   }
 
-  void _viewAssignments(String campaignId) async {
-    final assignments = await ApiService.getCampaignAssignments(campaignId);
+  void _showAssignmentsDialog(Map<String, dynamic> campaign) async {
+    final campaignId = campaign['id'] as String;
+    final assignments = await ApiService().getCampaignAssignments(campaignId);
     
     if (!mounted) return;
-    
-    // HARD DEBUG: Show raw response
-    String debugInfo = '''
-Campaign ID: $campaignId
-Assignments returned: ${assignments.length}
-Assignments data:
-${assignments.length > 0 ? assignments.map((a) => a.toString()).join('\n') : 'EMPTY LIST'}
-''';
-    
-    // Check for error
-    if (assignments.isNotEmpty && assignments[0]['error'] == true) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('${assignments[0]['message']}\n\n---\n$debugInfo'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Assigned Drivers'),
+        title: Text('Drivers - ${campaign['campaign_name']}'),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text('DEBUG: Campaign ID: $campaignId', 
-                  style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                Text('DEBUG: Assignments count: ${assignments.length}', 
-                  style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                // Check for error responses
-                if (assignments.isNotEmpty && assignments[0].containsKey('__error'))
-                  ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        border: Border.all(color: Colors.red),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('⚠️ ERROR', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
-                          Text('${assignments[0]['__message'] ?? 'Unknown error'}', 
-                            style: const TextStyle(fontSize: 11, color: Colors.red)),
-                          if (assignments[0].containsKey('__type'))
-                            Text('Type: ${assignments[0]['__type']}', 
-                              style: const TextStyle(fontSize: 9, color: Colors.red)),
-                          if (assignments[0].containsKey('__body'))
-                            Text('Details: ${assignments[0]['__body']}', 
-                              style: const TextStyle(fontSize: 9, color: Colors.red), 
-                              maxLines: 3, 
-                              overflow: TextOverflow.ellipsis),
-                        ],
-                      ),
-                    ),
-                  ]
-                else if (assignments.isNotEmpty)
-                  Text('DEBUG: First assignment keys: ${assignments[0].keys.toString()}', 
-                    style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                // Display raw API response for debugging
-                if (assignments.isNotEmpty && assignments[0].containsKey('__raw_response'))
-                  ...[\n                    const SizedBox(height: 8),
-                    Container(\n                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(\n                        color: Colors.blue[50],
-                        border: Border.all(color: Colors.blue),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Column(\n                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [\n                          const Text('📡 RAW API RESPONSE:', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.blue)),
-                          Text('Status: ${assignments[0]['__response_status'] ?? '?'}', 
-                            style: const TextStyle(fontSize: 9, color: Colors.blue)),
-                          const SizedBox(height: 4),
-                          Text(\n                            assignments[0]['__raw_response'].toString().substring(0, 300),
-                            style: const TextStyle(fontSize: 8, color: Colors.blue, fontFamily: 'Courier'),
-                            maxLines: 5,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                // Display empty response info
-                if (assignments.isNotEmpty && assignments[0].containsKey('__empty'))
-                  ...[\n                    const SizedBox(height: 8),
-                    Container(\n                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(\n                        color: Colors.orange[50],
-                        border: Border.all(color: Colors.orange),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Column(\n                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [\n                          const Text('⚠️ API RETURNED EMPTY ARRAY', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.orange)),
-                          Text('Status: ${assignments[0]['__response_status'] ?? '?'}', 
-                            style: const TextStyle(fontSize: 9, color: Colors.orange)),
-                          const SizedBox(height: 4),
-                          Text(\n                            'Raw: ' + (assignments[0]['__raw_response'].toString().substring(0, 250)),
-                            style: const TextStyle(fontSize: 8, color: Colors.orange, fontFamily: 'Courier'),
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                const SizedBox(height: 16),
-                if (assignments.isEmpty || (assignments.isNotEmpty && assignments[0].containsKey('__error')))
-                  const Text('No drivers assigned yet')
+                Text('Campaign ID: $campaignId', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                Text('Assignments found: ${assignments.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue)),
+                if (assignments.isEmpty)
+                  const SizedBox(height: 20)
                 else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: assignments.length,
-                    itemBuilder: (context, index) {
-                      final assignment = assignments[index];
-                      final driverProfile = assignment['driver_profiles'] as Map<String, dynamic>?;
-                      final users = driverProfile?['users'] as Map<String, dynamic>?;
-                      final driverName = users?['full_name'] ?? 'Unknown Driver';
-                      final driverEmail = users?['email'] ?? '';
-                      final status = assignment['status'] ?? 'active';
-                      
-                      return Column(
-                        children: [
-                          ListTile(
-                            title: Text(driverName),
-                            subtitle: Text('$driverEmail • Status: $status'),
-                          ),
-                          if (index < assignments.length - 1)
-                            const Divider(),
-                        ],
+                  Column(
+                    children: assignments.map<Widget>((a) {
+                      return Container(
+                        margin: const EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.blue),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Driver: ${a['driver_profiles']?['users']?['full_name'] ?? 'Unknown'}'),
+                            Text('Email: ${a['driver_profiles']?['users']?['email'] ?? 'N/A'}', style: const TextStyle(fontSize: 10)),
+                            Text('Status: ${a['status']}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                          ],
+                        ),
                       );
-                    },
+                    }).toList(),
+                  ),
+                if (assignments.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 20),
+                    child: Text('No drivers assigned yet', style: TextStyle(color: Colors.grey)),
                   ),
               ],
             ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
       ),
     );
   }
 
-  // TAB 3: COMPLETED CAMPAIGNS
-  Widget _buildCompletedCampaigns() {
-    if (_brandId == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Brand profile not found'),
-            const SizedBox(height: 8),
-            Text('User ID: $_userId'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _initializeUser(),
-              child: const Text('Retry'),
-            ),
-          ],
+  Widget _buildCompletedCampaignsTab() {
+    return const Center(child: Text('Completed campaigns coming soon'));
+  }
+
+  Widget _buildMessagesTab() {
+    return const Center(child: Text('Messages coming soon'));
+  }
+
+  Widget _buildAnalyticsTab() {
+    return const Center(child: Text('Analytics coming soon'));
+  }
+}
+
+// CAMPAIGN CARD
+class CampaignCard extends StatelessWidget {
+  final Map<String, dynamic> campaign;
+  final VoidCallback onViewDrivers;
+
+  const CampaignCard({required this.campaign, required this.onViewDrivers});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: ListTile(
+        title: Text(campaign['campaign_name'] ?? 'Unknown'),
+        subtitle: Text('Budget: \\$${campaign['weekly_budget'] ?? 0}/week'),
+        trailing: ElevatedButton(
+          onPressed: onViewDrivers,
+          child: const Text('View Drivers'),
         ),
+      ),
+    );
+  }
+}
+
+// CREATE CAMPAIGN FORM
+class CreateCampaignForm extends StatefulWidget {
+  final String userId;
+  const CreateCampaignForm({required this.userId});
+
+  @override
+  State<CreateCampaignForm> createState() => _CreateCampaignFormState();
+}
+
+class _CreateCampaignFormState extends State<CreateCampaignForm> {
+  final _nameController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _budgetController = TextEditingController();
+  final _durationController = TextEditingController();
+  final _earningsController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Campaign Name')),
+        const SizedBox(height: 12),
+        TextField(controller: _cityController, decoration: const InputDecoration(labelText: 'Target City')),
+        const SizedBox(height: 12),
+        TextField(controller: _budgetController, decoration: const InputDecoration(labelText: 'Weekly Budget (USD)'), keyboardType: TextInputType.number),
+        const SizedBox(height: 12),
+        TextField(controller: _durationController, decoration: const InputDecoration(labelText: 'Duration (weeks)'), keyboardType: TextInputType.number),
+        const SizedBox(height: 12),
+        TextField(controller: _earningsController, decoration: const InputDecoration(labelText: 'Driver Earnings/Week (USD)'), keyboardType: TextInputType.number),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _createCampaign,
+          child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Create Campaign'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _createCampaign() async {
+    setState(() => _isLoading = true);
+    try {
+      await ApiService().createCampaign(
+        brandId: widget.userId,
+        campaignName: _nameController.text,
+        targetCity: _cityController.text,
+        weeklyBudget: double.parse(_budgetController.text),
+        campaignDurationWeeks: int.parse(_durationController.text),
+        driverEarningsPerWeek: double.parse(_earningsController.text),
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Campaign created!')));
+        _nameController.clear();
+        _cityController.clear();
+        _budgetController.clear();
+        _durationController.clear();
+        _earningsController.clear();
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
-
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: ApiService.getCampaignsByBrand(_brandId!),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (!snapshot.hasData) {
-          return const Center(child: Text('No completed campaigns'));
-        }
-
-        // Filter only completed campaigns
-        final completedCampaigns =
-            snapshot.data!.where((c) => c['status'] == 'completed').toList();
-
-        return completedCampaigns.isEmpty
-            ? const Center(child: Text('No completed campaigns yet'))
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: completedCampaigns.length,
-                itemBuilder: (context, index) {
-                  final campaign = completedCampaigns[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: ListTile(
-                      title: Text(campaign['campaign_name'] ?? 'Unknown'),
-                      subtitle:
-                          Text('Location: ${campaign['target_city'] ?? 'Unknown'}'),
-                    ),
-                  );
-                },
-              );
-      },
-    );
-  }
-
-  // TAB 4: MESSAGES
-  Widget _buildMessages() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.message, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text('Messages coming soon'),
-        ],
-      ),
-    );
-  }
-
-  // TAB 5: ANALYTICS
-  Widget _buildAnalytics() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.analytics, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text('Analytics coming soon'),
-        ],
-      ),
-    );
+    setState(() => _isLoading = false);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _nameController.dispose();
+    _cityController.dispose();
+    _budgetController.dispose();
+    _durationController.dispose();
+    _earningsController.dispose();
     super.dispose();
   }
 }
