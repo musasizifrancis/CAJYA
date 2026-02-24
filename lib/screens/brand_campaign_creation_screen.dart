@@ -182,7 +182,6 @@ class _BrandCampaignCreationScreenState
         targetCity: _targetCityController.text,
         weeklyBudget: double.parse(_weeklyBudgetController.text),
         campaignDurationWeeks: int.parse(_campaignDurationController.text),
-        driversNeeded: int.parse(_driversNeededController.text),
         driverEarningsPerWeek:
             double.parse(_earningsPerWeekController.text),
       );
