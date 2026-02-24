@@ -194,8 +194,18 @@ class ApiService {
         return [{'__error': true, '__message': 'API Error ${response.statusCode}', '__body': response.body.substring(0, 200)}];
       }
       
+      // CRITICAL DEBUG: Include raw response in result
       final assignments = jsonDecode(response.body) as List;
       print('DEBUG: Raw assignments count: ${assignments.length}');
+      
+      // Add debug info to first result so UI can display it
+      if (assignments.isNotEmpty) {
+        assignments[0]['__raw_response'] = response.body;
+        assignments[0]['__response_status'] = response.statusCode;
+      } else {
+        // Return empty array but with debug info
+        return [{'__empty': true, '__raw_response': response.body, '__response_status': response.statusCode}];
+      }
       
       if (assignments.isEmpty) {
         print('DEBUG: No assignments found for this campaign');
