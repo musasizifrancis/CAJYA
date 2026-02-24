@@ -417,14 +417,51 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   // TAB 5: MESSAGES
   Widget _buildMessages() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      body: Column(
         children: [
-          const Icon(Icons.message, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
-          const Text('Messages coming soon'),
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: const Color(0xFF2196F3),
+            child: const Text(
+              'Driver-Brand Messages',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.mail, size: 64, color: Colors.grey[300]),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No Messages Yet',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Messages from brands will appear here',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Messaging feature coming soon')),
+          );
+        },
+        child: const Icon(Icons.message),
       ),
     );
   }
