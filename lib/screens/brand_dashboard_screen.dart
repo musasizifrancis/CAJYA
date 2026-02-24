@@ -2,15 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cajya/services/api_service.dart';
 
 class BrandDashboardScreen extends StatefulWidget {
-  final String userEmail;
-  final String userId;
-  final String brandName;
-
-  const BrandDashboardScreen({
-    required this.userEmail,
-    required this.userId,
-    required this.brandName,
-  });
+  final String? email;
+  final String? userRole;
+  
+  const BrandDashboardScreen({Key? key, this.email, this.userRole}) : super(key: key);
 
   @override
   State<BrandDashboardScreen> createState() => _BrandDashboardScreenState();
