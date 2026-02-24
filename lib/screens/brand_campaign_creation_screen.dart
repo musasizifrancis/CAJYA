@@ -14,7 +14,6 @@ class BrandCampaignCreationScreen extends StatefulWidget {
 
 class _BrandCampaignCreationScreenState
     extends State<BrandCampaignCreationScreen> {
-  final ApiService apiService = ApiService();
 
   final _campaignNameController = TextEditingController();
   final _targetCityController = TextEditingController();
