@@ -168,13 +168,9 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
                     
                     // Extract driver data from nested structure
                     final driverProfiles = assignment['driver_profiles'];
-                    final driverName = driverProfiles != null && driverProfiles is Map
-                        ? driverProfiles['users']?['full_name'] ?? 'Unknown'
-                        : 'Unknown';
+                    final driverName = (driverProfiles != null && driverProfiles is Map) ? (driverProfiles['users']?['full_name'] ?? 'Unknown') : 'Unknown';
                     
-                    final driverEmail = driverProfiles != null && driverProfiles is Map
-                        ? driverProfiles['users']?['email'] ?? 'N/A'
-                        : 'N/A';
+                    final driverEmail = (driverProfiles != null && driverProfiles is Map) ? (driverProfiles['users']?['email'] ?? 'N/A') : 'N/A';
 
                     final vehicleType = driverProfiles != null && driverProfiles is Map
                         ? driverProfiles['vehicle_type'] ?? 'N/A'
