@@ -63,7 +63,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
   // ACTIVE CAMPAIGNS TAB
   Widget _buildActiveCampaignsTab() {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: ApiService().getActiveCampaigns(widget.userId),
+      future: ApiService().getCampaignsByBrand(widget.userId),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final campaigns = snapshot.data!;
