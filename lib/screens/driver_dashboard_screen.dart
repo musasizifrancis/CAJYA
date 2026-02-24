@@ -377,7 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // TAB 3: EARNINGS
   // TAB 3: EARNINGS
   Widget _buildEarnings() {
-    if (!_isInitialized) {
+    if (_driverId == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
