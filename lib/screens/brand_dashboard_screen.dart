@@ -17,7 +17,6 @@ class BrandDashboardScreen extends StatefulWidget {
 }
 
 class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
-  final ApiService apiService = ApiService();
   int _selectedIndex = 0;
 
   @override
