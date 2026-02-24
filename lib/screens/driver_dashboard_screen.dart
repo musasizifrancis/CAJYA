@@ -392,15 +392,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    return FutureBuilder<Map<String, dynamic>>(
+    return FutureBuilder<double>(
       future: ApiService.getTotalEarnings(_driverId!),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final earnings = snapshot.data ?? {};
-        final totalEarnings = (earnings['total'] ?? 0).toString();
+        final totalEarnings = (snapshot.data ?? 0).toStringAsFixed(2);
 
         return SingleChildScrollView(
           child: Padding(
