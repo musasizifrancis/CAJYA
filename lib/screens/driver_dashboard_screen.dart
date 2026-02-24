@@ -89,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             const Text('Driver profile not found'),
             const SizedBox(height: 8),
-            const Text('User ID: $_userId'),
+            Text('User ID: $_userId'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _initializeUser(),
@@ -393,7 +393,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     return FutureBuilder<Map<String, dynamic>>(
-      future: ApiService.getDriverEarnings(_driverId!),
+      future: ApiService.getTotalEarnings(_driverId!),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
