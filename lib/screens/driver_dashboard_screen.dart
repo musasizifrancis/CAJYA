@@ -12,17 +12,15 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _DashboardScreenState extends State<DashboardScreen> {
   String? _driverId;
   String? _userId;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-    _initializeUser();  // This is async but we don't need to await
+    _initializeUser();
   }
 
   Future<void> _initializeUser() async {
@@ -38,19 +36,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Driver Dashboard'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Available'),
-            Tab(text: 'My Campaigns'),
-            Tab(text: 'Earnings'),
-            Tab(text: 'Profile'),
-            Tab(text: 'Messages'),
-          ],
-        ),
+        elevation: 2,
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: IndexedStack(
+        index: _selectedIndex,
         children: [
           _buildAvailableCampaigns(),
           _buildMyCampaigns(),
@@ -58,6 +47,35 @@ class _DashboardScreenState extends State<DashboardScreen>
           _buildProfile(),
           _buildMessages(),
         ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.explore),
+            label: 'Available',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.campaign),
+            label: 'My Campaigns',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.money),
+            label: 'Earnings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message),
+            label: 'Messages',
+          ),
+        ],
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+        },
       ),
     );
   }
@@ -100,12 +118,100 @@ class _DashboardScreenState extends State<DashboardScreen>
             final campaign = snapshot.data![index];
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
-              child: ListTile(
-                title: Text(campaign['campaign_name'] ?? 'Unknown'),
-                subtitle: Text(campaign['target_city'] ?? 'Unknown location'),
-                trailing: ElevatedButton(
-                  onPressed: () => _applyCampaign(campaign['id']),
-                  child: const Text('Apply'),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            campaign['campaign_name'] ?? 'Unknown',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            'Available',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 18, color: Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Text(
+                          campaign['target_city'] ?? 'Unknown location',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 18, color: Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${campaign['campaign_duration_weeks'] ?? 0} weeks',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Earnings: ',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text(
+                            'KES ${campaign['driver_earnings_per_week'] ?? 0}/week',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _applyCampaign(campaign['id']),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: Colors.blue,
+                        ),
+                        child: const Text('Apply Now'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -123,19 +229,16 @@ class _DashboardScreenState extends State<DashboardScreen>
       return;
     }
 
-    print('Driver applying - Driver ID: $_driverId, Campaign ID: $campaignId');
-    
     final success = await ApiService.applyForCampaign(_driverId!, campaignId);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Applied successfully! Check back in a moment.')),
+        const SnackBar(content: Text('Applied successfully!')),
       );
-      // Delay to allow database to sync
       await Future.delayed(const Duration(seconds: 1));
       setState(() {});
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to apply - check console for details')),
+        const SnackBar(content: Text('Failed to apply')),
       );
     }
   }
@@ -148,8 +251,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('Driver profile not found'),
-            const SizedBox(height: 8),
-            const Text('User ID: $_userId'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _initializeUser(),
@@ -177,23 +278,92 @@ class _DashboardScreenState extends State<DashboardScreen>
           itemBuilder: (context, index) {
             final assignment = snapshot.data![index];
             final campaign = assignment['campaigns'];
+            final status = assignment['status'] ?? 'active';
+            final statusColor = status == 'active' ? Colors.green : Colors.orange;
+            
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
+              elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      campaign['campaign_name'] ?? 'Unknown',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            campaign['campaign_name'] ?? 'Unknown',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            status.toUpperCase(),
+                            style: TextStyle(
+                              color: statusColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 18, color: Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Text(
+                          campaign['target_city'] ?? 'Unknown',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 8),
-                    Text('Location: ${campaign['target_city'] ?? 'Unknown'}'),
-                    Text('Status: ${assignment['status'] ?? 'active'}'),
+                    Row(
+                      children: [
+                        Icon(Icons.calendar_today, size: 18, color: Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${campaign['campaign_duration_weeks'] ?? 0} weeks',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Earning: ',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          Text(
+                            'KES ${campaign['driver_earnings_per_week'] ?? 0}/week',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -212,8 +382,127 @@ class _DashboardScreenState extends State<DashboardScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('Driver profile not found'),
-            const SizedBox(height: 8),
-            const Text('User ID: $_userId'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _initializeUser(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return FutureBuilder<Map<String, dynamic>>(
+      future: ApiService.getDriverEarnings(_driverId!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final earnings = snapshot.data ?? {};
+        final totalEarnings = (earnings['total'] ?? 0).toString();
+
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Total Earnings',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'KES $totalEarnings',
+                          style: const TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Text(
+                      'Withdrawal History',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.history, color: Colors.blue.shade700),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          '${earnings['withdrawal_count'] ?? 0} withdrawals',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _requestWithdrawal,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.green,
+                    ),
+                    child: const Text('Request Withdrawal'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _requestWithdrawal() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Withdrawal requested! You will be contacted soon.')),
+    );
+  }
+
+  // TAB 4: PROFILE
+  Widget _buildProfile() {
+    if (_userId == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Loading profile...'),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _initializeUser(),
@@ -228,247 +517,110 @@ class _DashboardScreenState extends State<DashboardScreen>
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FutureBuilder<double>(
-              future: ApiService.getTotalEarnings(_driverId!),
-              builder: (context, snapshot) {
-                return Card(
-                  color: Colors.green[100],
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
                       children: [
-                        const Text('Total Earnings'),
-                        const SizedBox(height: 8),
-                        Text(
-                          '\$${snapshot.data?.toStringAsFixed(2) ?? '0.00'}',
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
+                        Icon(Icons.person, size: 40),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Driver Profile',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text('Email:'),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Withdrawal History',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: ApiService.getWithdrawalHistory(_driverId!),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Text('No withdrawal history');
-                }
-
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    final withdrawal = snapshot.data![index];
-                    return ListTile(
-                      title: Text('\$${withdrawal['amount']}'),
-                      subtitle: Text(withdrawal['payment_method'] ?? 'Unknown'),
-                      trailing: Text(withdrawal['status'] ?? 'pending'),
-                    );
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _showWithdrawalDialog(),
-              child: const Text('Request Withdrawal'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showWithdrawalDialog() {
-    final amountController = TextEditingController();
-    String paymentMethod = 'bank_transfer';
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Request Withdrawal'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: amountController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Amount'),
-            ),
-            const SizedBox(height: 16),
-            DropdownButton<String>(
-              value: paymentMethod,
-              onChanged: (value) {
-                paymentMethod = value ?? 'bank_transfer';
-              },
-              items: const [
-                DropdownMenuItem(value: 'bank_transfer', child: Text('Bank Transfer')),
-                DropdownMenuItem(value: 'mobile_money', child: Text('Mobile Money')),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              if (_driverId != null && amountController.text.isNotEmpty) {
-                final success = await ApiService.requestWithdrawal(
-                  driverId: _driverId!,
-                  amount: double.parse(amountController.text),
-                  paymentMethod: paymentMethod,
-                );
-                if (success) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Withdrawal requested!')),
-                  );
-                  setState(() {});
-                }
-              }
-            },
-            child: const Text('Request'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // TAB 4: PROFILE
-  Widget _buildProfile() {
-    if (_driverId == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Driver profile not found'),
-            const SizedBox(height: 8),
-            const Text('User ID: $_userId'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _initializeUser(),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: ApiService.getDriverProfile(_driverId!),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final profile = snapshot.data;
-        if (profile == null) {
-          return const Center(child: Text('Profile not found'));
-        }
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Driver Information',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    Text('National ID: ${profile['national_id'] ?? 'Not provided'}'),
                     const SizedBox(height: 8),
-                    Text('Licence Number: ${profile['licence_number'] ?? 'Not provided'}'),
+                    Text(widget.email ?? 'Not available'),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    const Text('User ID:'),
+                    const SizedBox(height: 4),
+                    Text(
+                      _userId ?? 'Loading...',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    if (_driverId != null) ...[
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      const Text('Driver ID:'),
+                      const SizedBox(height: 4),
+                      Text(
+                        _driverId!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
   // TAB 5: MESSAGES
   Widget _buildMessages() {
-    return Scaffold(
-      body: Column(
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: const Color(0xFF2196F3),
-            child: const Text(
-              'Driver-Brand Messages',
-              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          Icon(
+            Icons.message,
+            size: 80,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No Messages Yet',
+            style: TextStyle(
+              fontSize: 18,
+              color: Colors.grey.shade700,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.mail, size: 64, color: Colors.grey[300]),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'No Messages Yet',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Messages from brands will appear here',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+          const SizedBox(height: 8),
+          Text(
+            'Messages from brands will appear here',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
             ),
+          ),
+          const SizedBox(height: 24),
+          FloatingActionButton.extended(
+            onPressed: () {},
+            label: const Text('Coming Soon'),
+            icon: const Icon(Icons.chat),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Messaging feature coming soon')),
-          );
-        },
-        child: const Icon(Icons.message),
-      ),
     );
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 }
