@@ -206,20 +206,203 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
   }
 
   Widget _buildCompletedCampaignsTab() {
-    return const Center(
-      child: Text('Completed Campaigns (Coming Soon)'),
+    return FutureBuilder<String?>(
+      future: ApiService.getCurrentUserId(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final userId = userSnapshot.data!;
+        return FutureBuilder<String?>(
+          future: ApiService.getBrandIdForUser(userId),
+          builder: (context, brandSnapshot) {
+            if (!brandSnapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final brandId = brandSnapshot.data!;
+            return FutureBuilder<List<dynamic>>(
+              future: ApiService.getCampaignsByBrand(brandId),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final completedCampaigns = (snapshot.data ?? [])
+                    .where((c) => c['status'] == 'completed' || c['status'] == 'inactive')
+                    .toList();
+                if (completedCampaigns.isEmpty) {
+                  return const Center(
+                    child: Text('No completed campaigns yet'),
+                  );
+                }
+                return ListView.builder(
+                  itemCount: completedCampaigns.length,
+                  itemBuilder: (context, index) {
+                    final campaign = completedCampaigns[index];
+                    return Card(
+                      margin: const EdgeInsets.all(8),
+                      child: ListTile(
+                        title: Text(campaign['campaign_name'] ?? 'Unknown'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('City: ${campaign['target_city'] ?? 'N/A'}'),
+                            Text('Duration: ${campaign['campaign_duration_weeks'] ?? 0} weeks'),
+                            Text('Status: ${campaign['status'] ?? 'N/A'}'),
+                          ],
+                        ),
+                        trailing: Chip(
+                          label: Text(campaign['status'] ?? 'Unknown'),
+                          backgroundColor: Colors.grey[300],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _buildAnalyticsTab() {
-    return const Center(
-      child: Text('Analytics (Coming Soon)'),
+    return FutureBuilder<String?>(
+      future: ApiService.getCurrentUserId(),
+      builder: (context, userSnapshot) {
+        if (!userSnapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final userId = userSnapshot.data!;
+        return FutureBuilder<String?>(
+          future: ApiService.getBrandIdForUser(userId),
+          builder: (context, brandSnapshot) {
+            if (!brandSnapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final brandId = brandSnapshot.data!;
+            return FutureBuilder<List<dynamic>>(
+              future: ApiService.getCampaignsByBrand(brandId),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final campaigns = snapshot.data ?? [];
+                final activeCampaigns = campaigns.where((c) => c['status'] == 'active').length;
+                final completedCampaigns = campaigns.where((c) => c['status'] == 'completed').length;
+                final totalBudget = campaigns.fold(0.0, (sum, c) => sum + (double.tryParse(c['weekly_budget'].toString()) ?? 0));
+                
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Total Campaigns', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                            Text('${campaigns.length}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Active Campaigns', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                            Text('$activeCampaigns', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.green)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Completed Campaigns', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                            Text('$completedCampaigns', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Total Budget', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                            Text('\$${totalBudget.toStringAsFixed(2)}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.orange)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _buildMessagesTab() {
-    return const Center(
-      child: Text('Messages (Coming Soon)'),
+    return Scaffold(
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: const Color(0xFF2196F3),
+            child: const Text(
+              'Brand-Driver Messages',
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.mail, size: 64, color: Colors.grey[300]),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No Messages Yet',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Messages with drivers will appear here',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Message feature coming soon')),
+          );
+        },
+        child: const Icon(Icons.message),
+      ),
     );
   }
 }
