@@ -256,13 +256,21 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen>
     
     if (!mounted) return;
     
+    // HARD DEBUG: Show raw response
+    String debugInfo = '''
+Campaign ID: $campaignId
+Assignments returned: ${assignments.length}
+Assignments data:
+${assignments.length > 0 ? assignments.map((a) => a.toString()).join('\n') : 'EMPTY LIST'}
+''';
+    
     // Check for error
     if (assignments.isNotEmpty && assignments[0]['error'] == true) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Error'),
-          content: Text('${assignments[0]['message']}'),
+          content: Text('${assignments[0]['message']}\n\n---\n$debugInfo'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
