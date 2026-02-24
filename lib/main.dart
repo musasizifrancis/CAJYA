@@ -7,7 +7,7 @@ import 'screens/role_selection_screen.dart';
 import 'screens/driver_auth_screen.dart';
 import 'screens/brand_auth_screen.dart';
 import 'screens/verification_screen.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/driver_dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
 import 'providers/main_provider.dart';
 
