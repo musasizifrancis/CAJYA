@@ -76,7 +76,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
 
   Widget _buildActiveCampaignsTab() {
     return FutureBuilder<String?>(
-      future: apiService.getCurrentUserId(),
+      future: ApiService.getCurrentUserId(),
       builder: (context, userIdSnapshot) {
         if (!userIdSnapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -85,7 +85,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
         final userId = userIdSnapshot.data!;
 
         return FutureBuilder<String?>(
-          future: apiService.getBrandIdForUser(userId),
+          future: ApiService.getBrandIdForUser(userId),
           builder: (context, brandIdSnapshot) {
             if (!brandIdSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -94,7 +94,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
             final brandId = brandIdSnapshot.data!;
 
             return FutureBuilder<List<Map<String, dynamic>>>(
-              future: apiService.getCampaignsByBrand(brandId),
+              future: ApiService.getCampaignsByBrand(brandId),
               builder: (context, campaignsSnapshot) {
                 if (!campaignsSnapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
@@ -149,7 +149,7 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
           content: SizedBox(
             width: double.maxFinite,
             child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: apiService.getCampaignAssignments(campaignId),
+              future: ApiService.getCampaignAssignments(campaignId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const CircularProgressIndicator();
