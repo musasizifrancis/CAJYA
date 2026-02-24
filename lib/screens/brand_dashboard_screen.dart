@@ -13,12 +13,28 @@ class BrandDashboardScreen extends StatefulWidget {
 
 class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
   int _selectedIndex = 0;
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserId();
+  }
+
+  Future<void> _fetchUserId() async {
+    try {
+      final userId = await ApiService().getCurrentUserId();
+      setState(() => _userId = userId);
+    } catch (e) {
+      print('Error fetching userId: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.brandName} Dashboard'),
+        title: const Text('Brand Dashboard'),
         backgroundColor: Colors.blue[700],
       ),
       body: _buildBody(),
@@ -49,16 +65,22 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
 
   // CREATE CAMPAIGN TAB
   Widget _buildCreateCampaignTab() {
+    if (_userId == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      child: CreateCampaignForm(userId: widget.userId),
+      child: CreateCampaignForm(userId: _userId!),
     );
   }
 
   // ACTIVE CAMPAIGNS TAB
   Widget _buildActiveCampaignsTab() {
+    if (_userId == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: ApiService().getCampaignsByBrand(widget.userId),
+      future: ApiService().getCampaignsByBrand(_userId!),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final campaigns = snapshot.data!;
@@ -159,7 +181,7 @@ class CampaignCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: ListTile(
         title: Text(campaign['campaign_name'] ?? 'Unknown'),
-        subtitle: Text('Budget: \\$${campaign['weekly_budget'] ?? 0}/week'),
+        subtitle: Text('Budget: \$${campaign['weekly_budget'] ?? 0}/week'),
         trailing: ElevatedButton(
           onPressed: onViewDrivers,
           child: const Text('View Drivers'),
