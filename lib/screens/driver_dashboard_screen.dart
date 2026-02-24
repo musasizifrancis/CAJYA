@@ -375,32 +375,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // TAB 3: EARNINGS
+  // TAB 3: EARNINGS
   Widget _buildEarnings() {
-    if (_driverId == null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Driver profile not found'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _initializeUser(),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
-      );
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
     }
 
     return FutureBuilder<double>(
       future: ApiService.getTotalEarnings(_driverId!),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final totalEarnings = (snapshot.data ?? 0).toStringAsFixed(2);
-
+        double earnings = snapshot.data ?? 0.0;
         return SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -421,7 +405,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'KES $totalEarnings',
+                          "KES ${earnings.toStringAsFixed(2)}",
                           style: const TextStyle(
                             fontSize: 40,
                             fontWeight: FontWeight.bold,
@@ -433,52 +417,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Text(
-                      'Withdrawal History',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                const Text(
+                  'Withdrawal History',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Card(
                   elevation: 2,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(Icons.history, color: Colors.blue.shade700),
-                        ),
-                        const SizedBox(width: 16),
-                        Text(
-                          '${earnings['withdrawal_count'] ?? 0} withdrawals',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ],
+                    child: Text(
+                      'No withdrawals yet',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _requestWithdrawal,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.green,
-                    ),
-                    child: const Text('Request Withdrawal'),
-                  ),
+                ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.account_balance_wallet),
+                  label: const Text('Request Withdrawal'),
                 ),
               ],
             ),
@@ -488,13 +452,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _requestWithdrawal() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Withdrawal requested! You will be contacted soon.')),
-    );
-  }
-
-  // TAB 4: PROFILE
   Widget _buildProfile() {
     if (_userId == null) {
       return Center(
