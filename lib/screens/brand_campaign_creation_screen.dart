@@ -158,7 +158,7 @@ class _BrandCampaignCreationScreenState
 
     try {
       // Get current user ID and brand ID
-      final userId = await apiService.getCurrentUserId();
+      final userId = await ApiService.getCurrentUserId();
       if (userId == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -167,7 +167,7 @@ class _BrandCampaignCreationScreenState
         return;
       }
 
-      final brandId = await apiService.getBrandIdForUser(userId);
+      final brandId = await ApiService.getBrandIdForUser(userId);
       if (brandId == null) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -177,7 +177,7 @@ class _BrandCampaignCreationScreenState
       }
 
       // Create campaign
-      final success = await apiService.createCampaign(
+      final success = await ApiService.createCampaign(
         brandId: brandId,
         campaignName: _campaignNameController.text,
         targetCity: _targetCityController.text,
