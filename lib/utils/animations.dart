@@ -71,11 +71,13 @@ class SlideInWidget extends StatefulWidget {
   final Widget child;
   final SlideDirection direction;
   final Duration duration;
+  final Duration delay;
 
   const SlideInWidget({
     required this.child,
     this.direction = SlideDirection.up,
     this.duration = const Duration(milliseconds: 400),
+    this.delay = const Duration(milliseconds: 0),
   });
 
   @override

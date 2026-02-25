@@ -97,7 +97,7 @@ class _WithdrawalRequestScreenState extends State<WithdrawalRequestScreen> {
       final phone = _phoneController.text.trim();
 
       // Create withdrawal request
-      final success = await PaymentService.requestWithdrawal(
+      final success = await ApiService.requestWithdrawal(
         driverId: widget.driverId,
         amount: amount,
         currency: CURRENCY,

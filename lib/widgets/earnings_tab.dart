@@ -243,7 +243,6 @@ class _EarningsTabWidgetState extends State<EarningsTabWidget> {
                         builder: (context) => WithdrawalRequestScreen(
                           driverId: widget.driverId,
                           currentBalance: balance,
-                          onSuccess: _refreshData,
                         ),
                       ),
                     );
