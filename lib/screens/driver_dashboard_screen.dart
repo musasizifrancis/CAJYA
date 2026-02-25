@@ -381,7 +381,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_driverId == null) {
       return const Center(child: CircularProgressIndicator());
     }
-    return EarningsTab(driverId: _driverId!);
+    return EarningsTabWidget(driverId: _driverId!);
   }
 
   Widget _buildProfile() {

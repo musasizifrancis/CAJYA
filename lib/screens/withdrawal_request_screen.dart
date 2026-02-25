@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/payment_service.dart';
 import '../utils/animations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/api_service.dart';
 
 class WithdrawalRequestScreen extends StatefulWidget {
   final double currentBalance;
@@ -97,12 +99,19 @@ class _WithdrawalRequestScreenState extends State<WithdrawalRequestScreen> {
       final phone = _phoneController.text.trim();
 
       // Create withdrawal request
-      final success = await ApiService.requestWithdrawal(
+      // Get driver info first
+      final driverEmail = Supabase.instance.client.auth.currentUser?.email ?? '';
+      final driverName = widget.driverId;
+      
+      final result = await PaymentService.initiateWithdrawal(
         driverId: widget.driverId,
+        mtnNumber: phone,
         amount: amount,
-        currency: CURRENCY,
-        phoneNumber: phone,
+        driverEmail: driverEmail,
+        driverName: driverName,
       );
+
+      final success = result['success'] == true;
 
       if (success) {
         setState(() {
