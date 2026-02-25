@@ -193,10 +193,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
               if (_currentStep < 1) {
                 setState(() => _currentStep++);
               } else {
-                Navigator.pushNamed(context, '/dashboard', arguments: {
-                  'email': widget.email,
-                  'userRole': widget.userRole,
-                });
+                // Route to profile setup for drivers, dashboard for brands
+                if (widget.userRole == 'driver') {
+                  Navigator.pushNamed(context, '/driver-profile-setup', arguments: {
+                    'email': widget.email,
+                  });
+                } else {
+                  Navigator.pushNamed(context, '/dashboard', arguments: {
+                    'email': widget.email,
+                    'userRole': widget.userRole,
+                  });
+                }
               }
             },
             style: ElevatedButton.styleFrom(

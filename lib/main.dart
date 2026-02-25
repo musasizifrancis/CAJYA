@@ -9,6 +9,7 @@ import 'screens/brand_auth_screen.dart';
 import 'screens/verification_screen.dart';
 import 'screens/driver_dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
+import 'screens/driver_profile_setup_screen.dart';
 import 'providers/main_provider.dart';
 
 void main() async {
@@ -65,6 +66,13 @@ class MyApp extends StatelessWidget {
                 builder: (_) => VerificationScreen(
                   email: args?['email'] ?? '',
                   userRole: args?['userRole'] ?? 'driver',
+                ),
+                settings: settings,
+              );
+            case '/driver-profile-setup':
+              return MaterialPageRoute(
+                builder: (_) => DriverProfileSetupScreen(
+                  email: args?['email'] ?? '',
                 ),
                 settings: settings,
               );
