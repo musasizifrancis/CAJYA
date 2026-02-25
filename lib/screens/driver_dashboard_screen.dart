@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'api_service.dart';
+import 'package:cajya/widgets/earnings_tab.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String? email;
@@ -380,78 +381,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_driverId == null) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    return FutureBuilder<double>(
-      future: ApiService.getTotalEarnings(_driverId!),
-      builder: (context, snapshot) {
-        double earnings = snapshot.data ?? 0.0;
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Total Earnings',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "KES ${earnings.toStringAsFixed(2)}",
-                          style: const TextStyle(
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Withdrawal History',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'No withdrawals yet',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.account_balance_wallet),
-                  label: const Text('Request Withdrawal'),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    return EarningsTab(driverId: _driverId!);
   }
 
+  // PROFILE TAB
+  Widget _buildProfile() {
   Widget _buildProfile() {
     if (_userId == null) {
       return Center(
