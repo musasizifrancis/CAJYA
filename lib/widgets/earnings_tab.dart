@@ -27,7 +27,7 @@ class _EarningsTabWidgetState extends State<EarningsTabWidget> {
 
   void _loadEarningsData() {
     _totalEarnings = ApiService.getTotalEarnings(widget.driverId);
-    _withdrawableBalance = ApiService.getWithdrawableBalance(widget.driverId);
+    _withdrawableBalance = ApiService.getTotalEarnings(widget.driverId);
     _withdrawalHistory = ApiService.getWithdrawalHistory(widget.driverId);
   }
 
@@ -40,7 +40,7 @@ class _EarningsTabWidgetState extends State<EarningsTabWidget> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: (_) async {
+      onRefresh: () async {
         _refreshData();
       },
       child: SingleChildScrollView(
@@ -242,7 +242,7 @@ class _EarningsTabWidgetState extends State<EarningsTabWidget> {
                       MaterialPageRoute(
                         builder: (context) => WithdrawalRequestScreen(
                           driverId: widget.driverId,
-                          availableBalance: balance,
+                          currentBalance: balance,
                           onSuccess: _refreshData,
                         ),
                       ),

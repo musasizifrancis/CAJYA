@@ -384,9 +384,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return EarningsTab(driverId: _driverId!);
   }
 
-  // PROFILE TAB
-  Widget _buildProfile() {
-  Widget _buildProfile() {
     if (_userId == null) {
       return Center(
         child: Column(
