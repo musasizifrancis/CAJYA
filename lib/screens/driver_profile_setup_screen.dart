@@ -5,11 +5,9 @@ import '../services/api_service.dart';
 
 class DriverProfileSetupScreen extends StatefulWidget {
   final String email;
-  final String userId;
 
   const DriverProfileSetupScreen({
     required this.email,
-    required this.userId,
     super.key,
   });
 
@@ -536,7 +534,7 @@ class _DriverProfileSetupScreenState extends State<DriverProfileSetupScreen> {
                     : const Color(0xFFE0E0E0),
               ),
               borderRadius: BorderRadius.circular(8),
-              backgroundColor: uploadedFileName != null
+              color: uploadedFileName != null
                   ? const Color(0xFFF0FFF4)
                   : Colors.white,
             ),
