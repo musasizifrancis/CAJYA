@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -373,4 +374,279 @@ class ApiService {
       return false;
     }
   }
+
+
+  // ============================================================================
+  // PROFILE SETUP METHODS (Phase 2 Implementation)
+  // ============================================================================
+
+  /// Method 1: Complete Driver Profile
+  /// Save driver profile data after setup
+  static Future<bool> completeDriverProfile(
+    String driverId,
+    Map<String, dynamic> profileData,
+  ) async {
+    try {
+      await _supabase.client
+          .from('driver_profiles')
+          .update({
+            ...profileData,
+            'profile_setup_completed': true,
+            'profile_completed_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', driverId);
+
+      return true;
+    } catch (e) {
+      print('Error completing profile: $e');
+      rethrow;
+    }
+  }
+
+  /// Method 2: Upload Document to Storage
+  /// Upload a document file to Supabase Storage
+  static Future<String> uploadDriverDocument(
+    String driverId,
+    File file,
+    String documentType,
+  ) async {
+    try {
+      // Validate file size (max 10MB)
+      final fileSize = await file.length();
+      if (fileSize > 10 * 1024 * 1024) {
+        throw Exception('File size exceeds 10MB limit');
+      }
+
+      // Validate file type
+      final fileName = file.path.split('/').last.toLowerCase();
+      final extension = fileName.split('.').last;
+      if (!['jpg', 'jpeg', 'png', 'pdf'].contains(extension)) {
+        throw Exception('Invalid file type. Supported: JPG, PNG, PDF');
+      }
+
+      // Upload to Supabase Storage
+      final storagePath =
+          'driver-documents/$driverId/$documentType/${DateTime.now().millisecondsSinceEpoch}.$extension';
+
+      await _supabase.client.storage.from('driver-documents').upload(storagePath, file);
+
+      // Get public URL
+      final publicUrl =
+          _supabase.client.storage.from('driver-documents').getPublicUrl(storagePath);
+
+      // Save metadata to driver_documents table
+      await _supabase.client.from('driver_documents').insert({
+        'driver_id': driverId,
+        'document_type': documentType,
+        'file_url': publicUrl,
+        'file_size_bytes': fileSize,
+        'file_mime_type': _getMimeType(extension),
+        'created_at': DateTime.now().toIso8601String(),
+      });
+
+      return publicUrl;
+    } catch (e) {
+      print('Error uploading document: $e');
+      rethrow;
+    }
+  }
+
+  /// Helper: Get MIME type from file extension
+  static String _getMimeType(String extension) {
+    const mimeTypes = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'pdf': 'application/pdf',
+    };
+    return mimeTypes[extension.toLowerCase()] ?? 'application/octet-stream';
+  }
+
+  /// Method 3: Get Driver Profile Status
+  /// Get current driver profile completion status
+  static Future<Map<String, dynamic>> getDriverProfileStatus(
+    String driverId,
+  ) async {
+    try {
+      final response = await _supabase.client
+          .from('driver_profiles')
+          .select()
+          .eq('id', driverId)
+          .single();
+
+      return response as Map<String, dynamic>;
+    } catch (e) {
+      print('Error getting profile status: $e');
+      rethrow;
+    }
+  }
+
+  /// Method 4: Check if Profile Setup is Complete
+  /// Quick check if driver has completed profile setup
+  static Future<bool> isProfileSetupComplete(String driverId) async {
+    try {
+      final response = await _supabase.client
+          .from('driver_profiles')
+          .select('profile_setup_completed')
+          .eq('id', driverId)
+          .single();
+
+      return response['profile_setup_completed'] as bool? ?? false;
+    } catch (e) {
+      print('Error checking profile setup: $e');
+      return false;
+    }
+  }
+
+  /// Method 5: Get Driver Documents
+  /// Get all documents for a driver
+  static Future<List<Map<String, dynamic>>> getDriverDocuments(
+    String driverId,
+  ) async {
+    try {
+      final response = await _supabase.client
+          .from('driver_documents')
+          .select()
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false);
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error getting documents: $e');
+      rethrow;
+    }
+  }
+
+  /// Method 6: Submit Profile for Verification
+  /// Submit driver profile for admin verification
+  static Future<String> submitProfileForVerification(String driverId) async {
+    try {
+      // Create entry in verification queue
+      final response = await _supabase.client
+          .from('admin_verification_queue')
+          .insert({
+            'driver_id': driverId,
+            'status': 'pending',
+            'submitted_at': DateTime.now().toIso8601String(),
+            'priority': 0,
+          })
+          .select('id')
+          .single();
+
+      // Update driver profile verification status
+      await _supabase.client
+          .from('driver_profiles')
+          .update({'verification_status': 'pending'})
+          .eq('id', driverId);
+
+      return response['id'] as String;
+    } catch (e) {
+      print('Error submitting for verification: $e');
+      rethrow;
+    }
+  }
+
+  /// Method 7: Get Verification Status
+  /// Get the current verification status of a driver's profile
+  static Future<String> getVerificationStatus(String driverId) async {
+    try {
+      final response = await _supabase.client
+          .from('driver_profiles')
+          .select('verification_status')
+          .eq('id', driverId)
+          .single();
+
+      return response['verification_status'] as String? ?? 'unknown';
+    } catch (e) {
+      print('Error getting verification status: $e');
+      return 'unknown';
+    }
+  }
+
+  /// Method 8: Delete Document
+  /// Delete a document (for updates/corrections)
+  static Future<bool> deleteDriverDocument(String documentId) async {
+    try {
+      await _supabase.client
+          .from('driver_documents')
+          .delete()
+          .eq('id', documentId);
+
+      return true;
+    } catch (e) {
+      print('Error deleting document: $e');
+      return false;
+    }
+  }
+
+  /// Method 9: Update Payment Method
+  /// Save or update MTN Mobile Money payment details
+  static Future<String> updatePaymentMethod(
+    String driverId,
+    String mtnNumber,
+    String accountName,
+  ) async {
+    try {
+      // Check if payment method exists for this driver
+      final existing = await _supabase.client
+          .from('payment_methods')
+          .select('id')
+          .eq('driver_id', driverId)
+          .eq('payment_provider', 'mtn_mobile_money');
+
+      if (existing.isEmpty) {
+        // Insert new payment method
+        final response = await _supabase.client
+            .from('payment_methods')
+            .insert({
+              'driver_id': driverId,
+              'payment_provider': 'mtn_mobile_money',
+              'provider_account_id': mtnNumber,
+              'phone_number': mtnNumber,
+              'account_name': accountName,
+              'status': 'unverified',
+              'is_primary': true,
+              'created_at': DateTime.now().toIso8601String(),
+            })
+            .select('id')
+            .single();
+
+        return response['id'] as String;
+      } else {
+        // Update existing payment method
+        await _supabase.client
+            .from('payment_methods')
+            .update({
+              'provider_account_id': mtnNumber,
+              'phone_number': mtnNumber,
+              'updated_at': DateTime.now().toIso8601String(),
+            })
+            .eq('driver_id', driverId)
+            .eq('payment_provider', 'mtn_mobile_money');
+
+        return existing[0]['id'] as String;
+      }
+    } catch (e) {
+      print('Error updating payment method: $e');
+      rethrow;
+    }
+  }
+
+  /// Method 10: Validate License Plate Uniqueness
+  /// Check if license plate is already registered
+  static Future<bool> isLicensePlateAvailable(String licensePlate) async {
+    try {
+      final response = await _supabase.client
+          .from('driver_profiles')
+          .select('id')
+          .eq('license_plate', licensePlate);
+
+      return response.isEmpty;
+    } catch (e) {
+      print('Error checking license plate: $e');
+      return false;
+    }
+  }
+
 }
