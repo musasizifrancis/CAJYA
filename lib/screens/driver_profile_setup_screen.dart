@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import '../services/api_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DriverProfileSetupScreen extends StatefulWidget {
   final String email;
@@ -709,7 +710,12 @@ class _DriverProfileSetupScreenState extends State<DriverProfileSetupScreen> {
         profileData['mtn_account_name'] = mtnNameController.text;
       }
 
-      await ApiService.completeDriverProfile(widget.userId, profileData);
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        _showSnackBar('User not authenticated');
+        return;
+      }
+      await ApiService.completeDriverProfile(userId, profileData);
 
       if (!mounted) return;
 
@@ -718,7 +724,6 @@ class _DriverProfileSetupScreenState extends State<DriverProfileSetupScreen> {
       Navigator.pushReplacementNamed(
         context,
         '/driver-dashboard',
-        arguments: {'userId': widget.userId},
       );
     } catch (e) {
       if (!mounted) return;
