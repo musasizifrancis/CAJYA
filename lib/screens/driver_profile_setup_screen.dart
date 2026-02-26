@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import '../services/api_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 
 class DriverProfileSetupScreen extends StatefulWidget {
   final String email;
@@ -682,8 +683,197 @@ class _DriverProfileSetupScreenState extends State<DriverProfileSetupScreen> {
     return false;
   }
 
-  void _pickDocument(Function(String) onPicked) {
-    _showSnackBar('Document picker will be integrated in Phase 4');
+  Future<void> _pickDocument(Function(String) onPicked) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      
+      // Show bottom sheet to pick source
+      showModalBottomSheet(
+        context: context,
+        builder: (context) => Container(
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(16),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select Document Source',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF003d99)),
+                title: const Text('Take Photo'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _captureDocument(picker, onPicked);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.image, color: Color(0xFF003d99)),
+                title: const Text('Choose from Gallery'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickFromGallery(picker, onPicked);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.description, color: Color(0xFF003d99)),
+                title: const Text('Choose File'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await _pickFile(onPicked);
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      _showSnackBar('Error opening file picker: $e');
+    }
+  }
+
+  Future<void> _captureDocument(
+    ImagePicker picker,
+    Function(String) onPicked,
+  ) async {
+    try {
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+
+      if (photo != null) {
+        await _uploadDocument(File(photo.path), onPicked);
+      }
+    } catch (e) {
+      _showSnackBar('Error capturing photo: $e');
+    }
+  }
+
+  Future<void> _pickFromGallery(
+    ImagePicker picker,
+    Function(String) onPicked,
+  ) async {
+    try {
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        await _uploadDocument(File(image.path), onPicked);
+      }
+    } catch (e) {
+      _showSnackBar('Error picking image: $e');
+    }
+  }
+
+  Future<void> _pickFile(Function(String) onPicked) async {
+    try {
+      _showSnackBar('PDF file picker coming in next update');
+    } catch (e) {
+      _showSnackBar('Error picking file: $e');
+    }
+  }
+
+  Future<void> _uploadDocument(
+    File file,
+    Function(String) onPicked,
+  ) async {
+    try {
+      // Show loading dialog
+      _showLoadingDialog('Validating and uploading...');
+
+      // Validate file
+      final validationError = _validateDocument(file);
+      if (validationError != null) {
+        Navigator.pop(context); // Close loading dialog
+        _showSnackBar(validationError);
+        return;
+      }
+
+      // Get user ID
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        Navigator.pop(context);
+        _showSnackBar('User not authenticated');
+        return;
+      }
+
+      // Upload to Supabase Storage
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}';
+      final filePath = 'driver-documents/\$userId/\$fileName';
+
+      final fileBytes = await file.readAsBytes();
+      await Supabase.instance.client.storage.from('driver-documents').uploadBinary(
+            filePath,
+            fileBytes,
+          );
+
+      // Close loading dialog
+      Navigator.pop(context);
+
+      // Callback with file name
+      onPicked(file.path.split('/').last);
+
+      _showSnackBar('Document uploaded successfully!');
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      _showSnackBar('Error uploading document: \$e');
+    }
+  }
+
+  String? _validateDocument(File file) {
+    // Check file size (max 10MB)
+    final fileSize = file.lengthSync();
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (fileSize > maxSize) {
+      return 'File size exceeds 10MB limit';
+    }
+
+    // Check file type
+    final fileName = file.path.toLowerCase();
+    final validExtensions = ['.jpg', '.jpeg', '.png', '.pdf'];
+    final isValidType =
+        validExtensions.any((ext) => fileName.endsWith(ext));
+
+    if (!isValidType) {
+      return 'Only JPG, PNG, and PDF files are allowed';
+    }
+
+    return null; // No error
+  }
+
+  void _showLoadingDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Color(0xFF003d99),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(message),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _saveProfile() async {
