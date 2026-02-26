@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+</plist>
+	<!-- Camera Usage Description -->
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to capture photos of your driver's license, vehicle registration, and insurance documents for verification purposes.</string>
+	<!-- Photo Library Usage Description -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select and upload driver documents.</string>
+	<!-- Photo Library Add Only -->
+	<key>NSPhotoLibraryAddOnlyUsageDescription</key>
+	<string>We need permission to save captured photos to your photo library.</string>
+	<!-- File Provider Domain Usage Description -->
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string>We need access to your files for document upload functionality.</string>
 </dict>
 </plist>
