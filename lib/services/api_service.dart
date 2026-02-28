@@ -649,4 +649,173 @@ class ApiService {
     }
   }
 
+
+  // ============ PROFILE MANAGEMENT METHODS ============
+  
+  static Future<bool> updatePersonalInfo({
+    required String userId,
+    required String fullName,
+    required String dateOfBirth,
+    required String phoneNumber,
+    required String emergencyContact,
+  }) async {
+    try {
+      await _client
+          .from('driver_profiles')
+          .update({
+            'full_name': fullName,
+            'date_of_birth': dateOfBirth,
+            'phone_number': phoneNumber,
+            'emergency_contact': emergencyContact,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('user_id', userId);
+      return true;
+    } catch (e) {
+      print('Error updating personal info: \$e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> updateVehicleInfo({
+    required String userId,
+    required String vehicleMake,
+    required String vehicleModel,
+    required int vehicleYear,
+    required String vehicleLicensePlate,
+    required String vehicleColor,
+    required String vehicleTransmission,
+  }) async {
+    try {
+      await _client
+          .from('driver_profiles')
+          .update({
+            'vehicle_make': vehicleMake,
+            'vehicle_model': vehicleModel,
+            'vehicle_year': vehicleYear,
+            'vehicle_license_plate': vehicleLicensePlate,
+            'vehicle_color': vehicleColor,
+            'vehicle_transmission': vehicleTransmission,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('user_id', userId);
+      return true;
+    } catch (e) {
+      print('Error updating vehicle info: \$e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getDocumentDetails(String documentId) async {
+    try {
+      final response = await _client
+          .from('driver_documents')
+          .select()
+          .eq('id', documentId)
+          .single();
+      return response as Map<String, dynamic>;
+    } catch (e) {
+      print('Error fetching document details: \$e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> deleteDocument(String documentId) async {
+    try {
+      await _client
+          .from('driver_documents')
+          .delete()
+          .eq('id', documentId);
+      return true;
+    } catch (e) {
+      print('Error deleting document: \$e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getDriverNotifications(String driverId) async {
+    try {
+      final response = await _client
+          .from('driver_notifications')
+          .select()
+          .eq('driver_id', driverId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      print('Error fetching notifications: \$e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> markNotificationAsRead(String notificationId) async {
+    try {
+      await _client
+          .from('driver_notifications')
+          .update({'is_read': true})
+          .eq('id', notificationId);
+      return true;
+    } catch (e) {
+      print('Error marking notification as read: \$e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> deleteNotification(String notificationId) async {
+    try {
+      await _client
+          .from('driver_notifications')
+          .delete()
+          .eq('id', notificationId);
+      return true;
+    } catch (e) {
+      print('Error deleting notification: \$e');
+      rethrow;
+    }
+  }
+
+  static Future<int> getUnreadNotificationCount(String driverId) async {
+    try {
+      final response = await _client
+          .from('driver_notifications')
+          .select()
+          .eq('driver_id', driverId)
+          .eq('is_read', false);
+      return (response as List).length;
+    } catch (e) {
+      print('Error fetching unread count: \$e');
+      return 0;
+    }
+  }
+
+  static Future<double> getProfileCompleteness(String userId) async {
+    try {
+      final profile = await getDriverProfile(userId);
+      
+      // Define required fields for a complete profile
+      final requiredFields = [
+        'full_name',
+        'date_of_birth',
+        'phone_number',
+        'id_number',
+        'vehicle_make',
+        'vehicle_model',
+        'vehicle_year',
+        'vehicle_license_plate',
+        'vehicle_color',
+        'vehicle_transmission',
+      ];
+      
+      int completedFields = 0;
+      for (final field in requiredFields) {
+        if (profile != null && profile[field] != null && profile[field].toString().isNotEmpty) {
+          completedFields++;
+        }
+      }
+      
+      return (completedFields / requiredFields.length) * 100;
+    } catch (e) {
+      print('Error calculating profile completeness: \$e');
+      return 0.0;
+    }
+  }
 }

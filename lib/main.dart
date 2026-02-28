@@ -11,6 +11,9 @@ import 'screens/driver_dashboard_screen.dart';
 import 'screens/brand_dashboard_screen.dart';
 import 'screens/driver_profile_setup_screen.dart';
 import 'providers/main_provider.dart';
+import 'screens/edit_profile_screen.dart';
+import 'screens/documents_management_screen.dart';
+import 'screens/document_detail_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,7 +101,24 @@ class MyApp extends StatelessWidget {
                   settings: settings,
                 );
               }
-            default:
+            case '/edit-profile':
+              return MaterialPageRoute(
+                builder: (_) => const EditProfileScreen(),
+                settings: settings,
+              );
+            case '/documents-management':
+              return MaterialPageRoute(
+                builder: (_) => const DocumentsManagementScreen(),
+                settings: settings,
+              );
+            case '/document-detail':
+              return MaterialPageRoute(
+                builder: (_) => DocumentDetailScreen(
+                  documentId: args?['documentId'] ?? '',
+                ),
+                settings: settings,
+              );
+                        default:
               return MaterialPageRoute(
                 builder: (_) => const SplashScreen(),
                 settings: settings,
