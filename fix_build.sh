@@ -1,3 +1,16 @@
+#!/bin/bash
+
+# FIX 1: Replace all _client references with http.get/post/put/delete in api_service.dart
+sed -i 's/await _client\.get(/await http.get(/g' lib/services/api_service.dart
+sed -i 's/await _client\.post(/await http.post(/g' lib/services/api_service.dart
+sed -i 's/await _client\.put(/await http.put(/g' lib/services/api_service.dart
+sed -i 's/await _client\.delete(/await http.delete(/g' lib/services/api_service.dart
+sed -i 's/await _client\.patch(/await http.patch(/g' lib/services/api_service.dart
+
+echo "✅ Fixed http client references"
+
+# FIX 2: Fix EditProfileScreen null-safety and Stepper
+cat > lib/screens/edit_profile_screen.dart << 'SCREENEOF'
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
@@ -212,3 +225,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+SCREENEOF
+
+echo "✅ Fixed EditProfileScreen"

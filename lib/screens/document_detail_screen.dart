@@ -25,10 +25,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Document Details'),
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Document Details')),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _documentFuture,
         builder: (context, snapshot) {
@@ -41,70 +38,74 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
           }
 
           final doc = snapshot.data ?? {};
+          final docType = doc['document_type'] as String? ?? 'Unknown';
+          final status = doc['verification_status'] as String?;
+          final uploadedAt = doc['uploaded_at'] as String?;
+          final verifiedAt = doc['verified_at'] as String?;
+          final verifiedBy = doc['verified_by'] as String?;
+          final rejectionReason = doc['rejection_reason'] as String?;
+          final fileUrl = doc['file_url'] as String?;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Document Type
-                _buildInfoCard(
-                  'Document Type',
-                  doc['document_type'] ?? 'N/A',
+                Text(
+                  docType,
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 16),
-
-                // Status
-                _buildInfoCard(
-                  'Verification Status',
-                  doc['verification_status'] ?? 'pending',
-                  statusValue: true,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(status).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    status?.toUpperCase() ?? 'UNKNOWN',
+                    style: TextStyle(
+                      color: _getStatusColor(status),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
-
-                // Upload Date
-                _buildInfoCard(
-                  'Uploaded On',
-                  doc['uploaded_at'] ?? 'N/A',
-                ),
-                const SizedBox(height: 16),
-
-                // File URL
-                if (doc['file_url'] != null)
-                  _buildInfoCard(
-                    'File URL',
-                    doc['file_url'],
+                const SizedBox(height: 24),
+                _buildDetailTile('Document Type', docType),
+                _buildDetailTile('Status', status ?? 'Unknown'),
+                if (uploadedAt != null) _buildDetailTile('Uploaded', uploadedAt),
+                if (verifiedAt != null) _buildDetailTile('Verified', verifiedAt),
+                if (verifiedBy != null) _buildDetailTile('Verified By', verifiedBy),
+                if (rejectionReason != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      border: Border.all(color: Colors.red),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Rejection Reason',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(rejectionReason),
+                      ],
+                    ),
                   ),
-                const SizedBox(height: 16),
-
-                // Rejection Reason (if rejected)
-                if (doc['verification_status'] == 'rejected' && doc['rejection_reason'] != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInfoCard(
-                        'Rejection Reason',
-                        doc['rejection_reason'],
-                        isError: true,
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                ],
+                if (fileUrl != null) ...[
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => _openFile(fileUrl),
+                    icon: const Icon(Icons.download),
+                    label: const Text('Download Document'),
                   ),
-
-                // Verified By (if approved)
-                if (doc['verified_by'] != null)
-                  _buildInfoCard(
-                    'Verified By',
-                    doc['verified_by'],
-                  ),
-                const SizedBox(height: 16),
-
-                // Verified At (if approved)
-                if (doc['verified_at'] != null)
-                  _buildInfoCard(
-                    'Verified On',
-                    doc['verified_at'],
-                  ),
+                ],
               ],
             ),
           );
@@ -113,53 +114,32 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
     );
   }
 
-  Widget _buildInfoCard(
-    String label,
-    String value, {
-    bool statusValue = false,
-    bool isError = false,
-  }) {
-    Color? backgroundColor;
-    Color? textColor;
+  Widget _buildDetailTile(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+        Text(value, style: const TextStyle(fontSize: 14)),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
 
-    if (statusValue) {
-      if (value == 'approved') {
-        backgroundColor = Colors.green.shade50;
-        textColor = Colors.green.shade700;
-      } else if (value == 'rejected') {
-        backgroundColor = Colors.red.shade50;
-        textColor = Colors.red.shade700;
-      } else {
-        backgroundColor = Colors.orange.shade50;
-        textColor = Colors.orange.shade700;
-      }
-    } else if (isError) {
-      backgroundColor = Colors.red.shade50;
-      textColor = Colors.red.shade700;
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'approved':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      case 'pending':
+      default:
+        return Colors.orange;
     }
+  }
 
-    return Card(
-      color: backgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ],
-        ),
-      ),
+  void _openFile(String fileUrl) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Opening: $fileUrl')),
     );
   }
 }
