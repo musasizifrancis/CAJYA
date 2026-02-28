@@ -67,11 +67,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updatePersonalInfo() async {
     try {
       await ApiService.updatePersonalInfo(
-        widget.userId,
-        _nameController.text,
-        _dobController.text,
-        _phoneController.text,
-        _emergencyContactController.text,
+        userId: widget.userId,
+        fullName: _nameController.text,
+        dateOfBirth: _dobController.text,
+        phoneNumber: _phoneController.text,
+        emergencyContact: _emergencyContactController.text,
       );
       setState(() => _currentStep = 1);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -87,13 +87,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updateVehicleInfo() async {
     try {
       await ApiService.updateVehicleInfo(
-        widget.userId,
-        _makeController.text,
-        _modelController.text,
-        int.tryParse(_yearController.text) ?? 0,
-        _licensePlateController.text,
-        _colorController.text,
-        _transmissionController.text,
+        userId: widget.userId,
+        vehicleMake: _makeController.text,
+        vehicleModel: _modelController.text,
+        vehicleYear: int.tryParse(_yearController.text) ?? 0,
+        vehicleLicensePlate: _licensePlateController.text,
+        vehicleColor: _colorController.text,
+        vehicleTransmission: _transmissionController.text,
       );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vehicle info updated')),

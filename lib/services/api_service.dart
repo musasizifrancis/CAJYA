@@ -660,7 +660,7 @@ class ApiService {
     required String emergencyContact,
   }) async {
     try {
-      await _client
+      await Supabase.instance.client
           .from('driver_profiles')
           .update({
             'full_name': fullName,
@@ -687,7 +687,7 @@ class ApiService {
     required String vehicleTransmission,
   }) async {
     try {
-      await _client
+      await Supabase.instance.client
           .from('driver_profiles')
           .update({
             'vehicle_make': vehicleMake,
@@ -708,7 +708,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getDocumentDetails(String documentId) async {
     try {
-      final response = await _client
+      final response = await Supabase.instance.client
           .from('driver_documents')
           .select()
           .eq('id', documentId)
@@ -722,7 +722,7 @@ class ApiService {
 
   static Future<bool> deleteDocument(String documentId) async {
     try {
-      await _client
+      await Supabase.instance.client
           .from('driver_documents')
           .delete()
           .eq('id', documentId);
@@ -735,7 +735,7 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>> getDriverNotifications(String driverId) async {
     try {
-      final response = await _client
+      final response = await Supabase.instance.client
           .from('driver_notifications')
           .select()
           .eq('driver_id', driverId)
@@ -749,7 +749,7 @@ class ApiService {
 
   static Future<bool> markNotificationAsRead(String notificationId) async {
     try {
-      await _client
+      await Supabase.instance.client
           .from('driver_notifications')
           .update({'is_read': true})
           .eq('id', notificationId);
@@ -762,7 +762,7 @@ class ApiService {
 
   static Future<bool> deleteNotification(String notificationId) async {
     try {
-      await _client
+      await Supabase.instance.client
           .from('driver_notifications')
           .delete()
           .eq('id', notificationId);
@@ -775,7 +775,7 @@ class ApiService {
 
   static Future<int> getUnreadNotificationCount(String driverId) async {
     try {
-      final response = await _client
+      final response = await Supabase.instance.client
           .from('driver_notifications')
           .select()
           .eq('driver_id', driverId)

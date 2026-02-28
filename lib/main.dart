@@ -102,15 +102,17 @@ class MyApp extends StatelessWidget {
                 );
               }
             case '/edit-profile':
-              return MaterialPageRoute(
-                builder: (_) => const EditProfileScreen(),
-                settings: settings,
-              );
+      final userId = settings.arguments as String?;
+      return MaterialPageRoute(
+        builder: (_) => EditProfileScreen(userId: userId ?? ''),
+        settings: settings,
+      );
             case '/documents-management':
-              return MaterialPageRoute(
-                builder: (_) => const DocumentsManagementScreen(),
-                settings: settings,
-              );
+      final driverId = settings.arguments as String?;
+      return MaterialPageRoute(
+        builder: (_) => DocumentsManagementScreen(driverId: driverId ?? ''),
+        settings: settings,
+      );
             case '/document-detail':
               return MaterialPageRoute(
                 builder: (_) => DocumentDetailScreen(

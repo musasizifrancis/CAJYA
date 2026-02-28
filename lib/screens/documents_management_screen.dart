@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../screens/document_detail_screen.dart';
 
 class DocumentsManagementScreen extends StatefulWidget {
   final String driverId;
@@ -147,6 +148,7 @@ class _DocumentsManagementScreenState extends State<DocumentsManagementScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => DocumentDetailScreen(documentId: docId),
+
                           ),
                         );
                       } else if (value == 'delete' && docId != null) {
