@@ -14,6 +14,7 @@ import 'providers/main_provider.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/documents_management_screen.dart';
 import 'screens/document_detail_screen.dart';
+import 'screens/admin_verification_panel_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,6 +119,11 @@ class MyApp extends StatelessWidget {
                 builder: (_) => DocumentDetailScreen(
                   documentId: args?['documentId'] ?? '',
                 ),
+                settings: settings,
+              );
+            case '/admin-verification':
+              return MaterialPageRoute(
+                builder: (_) => const AdminVerificationPanelScreen(),
                 settings: settings,
               );
                         default:
