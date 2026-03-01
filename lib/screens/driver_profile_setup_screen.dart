@@ -4,6 +4,7 @@ import 'dart:io';
 import '../services/api_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 
 class DriverProfileSetupScreen extends StatefulWidget {
   final String email;
@@ -780,7 +781,18 @@ class _DriverProfileSetupScreenState extends State<DriverProfileSetupScreen> {
 
   Future<void> _pickFile(Function(String) onPicked) async {
     try {
-      _showSnackBar('PDF file picker coming in next update');
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final PlatformFile file = result.files.first;
+        if (file.path != null) {
+          await _uploadDocument(File(file.path!), onPicked);
+        }
+      }
     } catch (e) {
       _showSnackBar('Error picking file: $e');
     }
