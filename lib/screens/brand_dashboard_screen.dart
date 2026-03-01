@@ -26,6 +26,20 @@ class _BrandDashboardScreenState extends State<BrandDashboardScreen> {
         title: const Text('Brand Dashboard'),
         backgroundColor: const Color(0xFF2196F3),
         elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Tooltip(
+              message: 'Document Verification Panel',
+              child: IconButton(
+                icon: const Icon(Icons.verified_user, color: Colors.white),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/admin-verification');
+                },
+              ),
+            ),
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,
