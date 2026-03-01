@@ -664,7 +664,7 @@ class _DocumentReviewScreenState extends State<DocumentReviewScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.close_circle, color: Colors.red[700]),
+                              Icon(Icons.cancel, color: Colors.red[700]),
                               const SizedBox(width: 8),
                               const Text(
                                 'Rejection Reason',
