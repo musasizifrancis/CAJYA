@@ -385,7 +385,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return EarningsTabWidget(driverId: _driverId!);
   }
 
-  // TAB 4: PROFILE WITH EDIT BUTTON
+  // TAB 4: PROFILE
   Widget _buildProfile() {
     if (_userId == null || _driverId == null) {
       return Center(
@@ -408,7 +408,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Profile Header Card
             Card(
               elevation: 2,
               child: Padding(
@@ -452,64 +451,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Text('Driver ID:'),
-                    const SizedBox(height: 4),
-                    Text(
-                      _driverId!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
+                    if (_driverId != null) ...[
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      const Text('Driver ID:'),
+                      const SizedBox(height: 4),
+                      Text(
+                        _driverId!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 20),
-
-            // Edit Profile Button
+            // EDIT PROFILE BUTTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileScreen(driverId: _driverId!),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.edit),
                 label: const Text('Edit Profile'),
                 style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditProfileScreen(userId: _userId!),
-                    ),
-                  );
-                },
               ),
             ),
             const SizedBox(height: 12),
-
-            // Documents Management Button
+            // MANAGE DOCUMENTS BUTTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: const Icon(Icons.description),
-                label: const Text('Manage Documents'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DocumentsManagementScreen(userId: _userId!),
+                      builder: (context) => DocumentsManagementScreen(driverId: _driverId!),
                     ),
                   );
                 },
+                icon: const Icon(Icons.document_scanner),
+                label: const Text('Manage Documents'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: Colors.green,
+                ),
               ),
             ),
           ],
