@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'api_service.dart';
 import 'package:cajya/widgets/earnings_tab.dart';
-import 'package:cajya/screens/edit_profile_screen.dart';
-import 'package:cajya/screens/documents_management_screen.dart';
+import 'edit_profile_screen.dart';
+import 'documents_management_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String? email;
@@ -385,7 +385,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return EarningsTabWidget(driverId: _driverId!);
   }
 
-  // TAB 4: PROFILE - WITH EDIT BUTTONS
+  // TAB 4: PROFILE
   Widget _buildProfile() {
     if (_userId == null) {
       return Center(
@@ -465,53 +465,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 24),
-                    // EDIT PROFILE BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditProfileScreen(userId: _userId!),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Edit Profile'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.blue,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // MANAGE DOCUMENTS BUTTON
-                    if (_driverId != null)
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DocumentsManagementScreen(driverId: _driverId!),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.file_upload),
-                          label: const Text('Manage Documents'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            backgroundColor: Colors.green,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            // EDIT PROFILE BUTTON
+            if (_userId != null)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProfileScreen(userId: _userId!),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Edit Profile'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Colors.blue,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 12),
+            // MANAGE DOCUMENTS BUTTON
+            if (_driverId != null)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DocumentsManagementScreen(driverId: _driverId!),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.document_scanner),
+                  label: const Text('Manage Documents'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Colors.green,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
