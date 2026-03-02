@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'api_service.dart';
 import 'package:cajya/widgets/earnings_tab.dart';
+import 'edit_profile_screen.dart';
+import 'documents_management_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String? email;
   final String? userRole;
-  
+
   const DashboardScreen({Key? key, this.email, this.userRole}) : super(key: key);
 
   @override
@@ -281,7 +283,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             final campaign = assignment['campaigns'];
             final status = assignment['status'] ?? 'active';
             final statusColor = status == 'active' ? Colors.green : Colors.orange;
-            
+
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               elevation: 2,
@@ -376,7 +378,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // TAB 3: EARNINGS
-  // TAB 3: EARNINGS
   Widget _buildEarnings() {
     if (_driverId == null) {
       return const Center(child: CircularProgressIndicator());
@@ -384,8 +385,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return EarningsTabWidget(driverId: _driverId!);
   }
 
+  // TAB 4: PROFILE WITH EDIT BUTTON
   Widget _buildProfile() {
-    if (_userId == null) {
+    if (_userId == null || _driverId == null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -406,6 +408,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // Profile Header Card
             Card(
               elevation: 2,
               child: Padding(
@@ -449,22 +452,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Colors.grey.shade600,
                       ),
                     ),
-                    if (_driverId != null) ...[
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      const Text('Driver ID:'),
-                      const SizedBox(height: 4),
-                      Text(
-                        _driverId!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    const Text('Driver ID:'),
+                    const SizedBox(height: 4),
+                    Text(
+                      _driverId!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
                       ),
-                    ],
+                    ),
                   ],
                 ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Edit Profile Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.edit),
+                label: const Text('Edit Profile'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileScreen(userId: _userId!),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Documents Management Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.description),
+                label: const Text('Manage Documents'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DocumentsManagementScreen(userId: _userId!),
+                    ),
+                  );
+                },
               ),
             ),
           ],
