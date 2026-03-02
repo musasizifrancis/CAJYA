@@ -13,13 +13,38 @@ class AdminService {
     try {
       final response = await _client
           .from('driver_documents')
-          .select('*, driver_profiles(id, full_name, user_id)')
+          .select('*, driver_profiles(id, user_id, national_id)')
           .eq('verification_status', 'pending')
           .range(offset, offset + limit - 1)
           .order('created_at', ascending: true);
-      return List<Map<String, dynamic>>.from(response);
+      
+      // Fetch driver names from auth.users for each document
+      List<Map<String, dynamic>> result = [];
+      for (var doc in response) {
+        final driverProfile = doc['driver_profiles'] as Map<String, dynamic>?;
+        if (driverProfile != null) {
+          final userId = driverProfile['user_id'];
+          if (userId != null) {
+            try {
+              final userResponse = await _client
+                  .from('auth.users')
+                  .select('email')
+                  .eq('id', userId)
+                  .single();
+              
+              // Add driver name (from email) to the profile
+              doc['driver_profiles']['full_name'] = (userResponse['email'] as String?)?.split('@').first ?? 'Unknown';
+            } catch (e) {
+              doc['driver_profiles']['full_name'] = 'Unknown Driver';
+            }
+          }
+        }
+        result.add(doc);
+      }
+      
+      return result;
     } catch (e) {
-      print('Error fetching pending documents: $e');
+      print('Error fetching pending documents: \$e');
       rethrow;
     }
   }
@@ -36,7 +61,7 @@ class AdminService {
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching driver documents: $e');
+      print('Error fetching driver documents: \$e');
       rethrow;
     }
   }
@@ -57,7 +82,7 @@ class AdminService {
           .eq('id', documentId);
       return true;
     } catch (e) {
-      print('Error approving document: $e');
+      print('Error approving document: \$e');
       rethrow;
     }
   }
@@ -80,7 +105,7 @@ class AdminService {
           .eq('id', documentId);
       return true;
     } catch (e) {
-      print('Error rejecting document: $e');
+      print('Error rejecting document: \$e');
       rethrow;
     }
   }
@@ -109,7 +134,7 @@ class AdminService {
         'rejected': (rejected as List).length,
       };
     } catch (e) {
-      print('Error fetching verification stats: $e');
+      print('Error fetching verification stats: \$e');
       return {'pending': 0, 'approved': 0, 'rejected': 0};
     }
   }
@@ -129,7 +154,7 @@ class AdminService {
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching all drivers: $e');
+      print('Error fetching all drivers: \$e');
       rethrow;
     }
   }
@@ -144,7 +169,7 @@ class AdminService {
           .single();
       return response as Map<String, dynamic>;
     } catch (e) {
-      print('Error fetching driver details: $e');
+      print('Error fetching driver details: \$e');
       return null;
     }
   }
@@ -152,20 +177,20 @@ class AdminService {
   /// Search drivers by name or email
   static Future<List<Map<String, dynamic>>> searchDrivers(String query) async {
     try {
-      // Search by full name
-      final nameResults = await _client
+      // Search by national ID
+      final idResults = await _client
           .from('driver_profiles')
           .select()
-          .ilike('full_name', '%$query%');
+          .ilike('national_id', '%\$query%');
 
-      // Search by email in auth
-      final emailResults = await _client
+      // Search by license number
+      final licenseResults = await _client
           .from('driver_profiles')
           .select()
-          .ilike('email', '%$query%');
+          .ilike('license_number', '%\$query%');
 
       // Combine and deduplicate
-      final combined = [...nameResults, ...emailResults];
+      final combined = [...idResults, ...licenseResults];
       final seen = <String>{};
       final deduped = <Map<String, dynamic>>[];
 
@@ -178,7 +203,7 @@ class AdminService {
 
       return deduped;
     } catch (e) {
-      print('Error searching drivers: $e');
+      print('Error searching drivers: \$e');
       rethrow;
     }
   }
@@ -187,7 +212,7 @@ class AdminService {
   static Future<Map<String, dynamic>> getDriverStatistics() async {
     try {
       final allDrivers = await _client.from('driver_profiles').select('id');
-      
+
       final verified = await _client
           .from('driver_profiles')
           .select()
@@ -204,7 +229,7 @@ class AdminService {
         'pendingVerification': (pending as List).length,
       };
     } catch (e) {
-      print('Error fetching driver statistics: $e');
+      print('Error fetching driver statistics: \$e');
       return {
         'totalDrivers': 0,
         'verifiedDrivers': 0,
@@ -233,7 +258,7 @@ class AdminService {
       });
       return true;
     } catch (e) {
-      print('Error sending notification: $e');
+      print('Error sending notification: \$e');
       rethrow;
     }
   }
@@ -258,7 +283,7 @@ class AdminService {
       }
       return count;
     } catch (e) {
-      print('Error sending bulk notifications: $e');
+      print('Error sending bulk notifications: \$e');
       rethrow;
     }
   }
@@ -273,7 +298,7 @@ class AdminService {
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching admin notifications: $e');
+      print('Error fetching admin notifications: \$e');
       return [];
     }
   }
@@ -293,7 +318,7 @@ class AdminService {
           .lte('verified_at', endDate.toIso8601String());
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error exporting verification data: $e');
+      print('Error exporting verification data: \$e');
       rethrow;
     }
   }
@@ -310,7 +335,7 @@ class AdminService {
           .limit(limit);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching audit log: $e');
+      print('Error fetching audit log: \$e');
       return [];
     }
   }
