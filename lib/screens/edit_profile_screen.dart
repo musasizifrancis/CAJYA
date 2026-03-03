@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:cajya/services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String driverId;
-  late String _userId = x27x27;
+  late String _userId = '';
 
-  const EditProfileScreen({
+  EditProfileScreen({
     Key? key,
     required this.driverId,
   }) : super(key: key);
@@ -16,68 +16,70 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   int _currentStep = 0;
-  bool _loading = true;
-  String? _error;
+  bool _isLoading = true;
 
-  // Personal info controllers
-  final _nameController = TextEditingController();
-  final _dobController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _emergencyContactController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emergencyContactController =
+      TextEditingController();
 
-  // Vehicle info controllers
-  final _makeController = TextEditingController();
-  final _modelController = TextEditingController();
-  final _yearController = TextEditingController();
-  final _licensePlateController = TextEditingController();
-  final _colorController = TextEditingController();
-  final _transmissionController = TextEditingController();
+  final TextEditingController _vehicleMakeController = TextEditingController();
+  final TextEditingController _vehicleModelController =
+      TextEditingController();
+  final TextEditingController _vehicleYearController = TextEditingController();
+  final TextEditingController _licensePlateController =
+      TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _transmissionController =
+      TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _loadProfileData();
   }
 
-  Future<void> _loadProfile() async {
+  Future<void> _loadProfileData() async {
     try {
       final data = await ApiService.getDriverProfile(widget.driverId);
       if (data != null) {
-      _userId = data['user_id'] ?? '';
+        widget._userId = data['user_id'] ?? '';
         setState(() {
           _nameController.text = data['full_name'] as String? ?? '';
           _dobController.text = data['date_of_birth'] as String? ?? '';
           _phoneController.text = data['phone_number'] as String? ?? '';
-          _emergencyContactController.text = data['emergency_contact'] as String? ?? '';
-          _makeController.text = data['vehicle_make'] as String? ?? '';
-          _modelController.text = data['vehicle_model'] as String? ?? '';
-          _yearController.text = (data['vehicle_year'] as int?)?.toString() ?? '';
-          _licensePlateController.text = data['vehicle_license_plate'] as String? ?? '';
+          _emergencyContactController.text =
+              data['emergency_contact'] as String? ?? '';
+          _vehicleMakeController.text = data['vehicle_make'] as String? ?? '';
+          _vehicleModelController.text =
+              data['vehicle_model'] as String? ?? '';
+          _vehicleYearController.text = data['vehicle_year'] as String? ?? '';
+          _licensePlateController.text =
+              data['license_plate'] as String? ?? '';
           _colorController.text = data['vehicle_color'] as String? ?? '';
-          _transmissionController.text = data['vehicle_transmission'] as String? ?? '';
-          _loading = false;
+          _transmissionController.text =
+              data['transmission_type'] as String? ?? '';
+          _isLoading = false;
         });
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _loading = false;
-      });
+      print('Error loading profile: $e');
+      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _updatePersonalInfo() async {
     try {
       await ApiService.updatePersonalInfo(
-        userId: widget.userId,
+        userId: widget._userId,
         fullName: _nameController.text,
         dateOfBirth: _dobController.text,
         phoneNumber: _phoneController.text,
         emergencyContact: _emergencyContactController.text,
       );
-      setState(() => _currentStep = 1);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Personal info updated')),
+        const SnackBar(content: Text('Personal info updated successfully')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,18 +91,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updateVehicleInfo() async {
     try {
       await ApiService.updateVehicleInfo(
-        userId: widget.userId,
-        vehicleMake: _makeController.text,
-        vehicleModel: _modelController.text,
-        vehicleYear: int.tryParse(_yearController.text) ?? 0,
-        vehicleLicensePlate: _licensePlateController.text,
+        userId: widget._userId,
+        vehicleMake: _vehicleMakeController.text,
+        vehicleModel: _vehicleModelController.text,
+        vehicleYear: _vehicleYearController.text,
+        licensePlate: _licensePlateController.text,
         vehicleColor: _colorController.text,
-        vehicleTransmission: _transmissionController.text,
+        transmissionType: _transmissionController.text,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vehicle info updated')),
+        const SnackBar(content: Text('Vehicle info updated successfully')),
       );
-      if (mounted) Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -109,44 +110,44 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    _dobController.dispose();
-    _phoneController.dispose();
-    _emergencyContactController.dispose();
-    _makeController.dispose();
-    _modelController.dispose();
-    _yearController.dispose();
-    _licensePlateController.dispose();
-    _colorController.dispose();
-    _transmissionController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_loading) {
+    if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Edit Profile')),
+        appBar: AppBar(
+          title: const Text('Edit Profile'),
+          backgroundColor: const Color(0xFF1E88E5),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (_error != null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Edit Profile')),
-        body: Center(child: Text('Error: $_error')),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        backgroundColor: const Color(0xFF1E88E5),
+      ),
       body: Stepper(
         currentStep: _currentStep,
-        onStepTapped: (step) => setState(() => _currentStep = step),
+        onStepContinue: () {
+          if (_currentStep == 0) {
+            _updatePersonalInfo();
+            setState(() => _currentStep = 1);
+          } else {
+            _updateVehicleInfo();
+            Navigator.pop(context);
+          }
+        },
+        onStepCancel: () {
+          if (_currentStep > 0) {
+            setState(() => _currentStep -= 1);
+          } else {
+            Navigator.pop(context);
+          }
+        },
         steps: [
           Step(
             title: const Text('Personal Information'),
+            isActive: _currentStep >= 0,
             content: Column(
               children: [
                 TextField(
@@ -155,7 +156,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 TextField(
                   controller: _dobController,
-                  decoration: const InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)'),
+                  decoration:
+                      const InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)'),
                 ),
                 TextField(
                   controller: _phoneController,
@@ -163,35 +165,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 TextField(
                   controller: _emergencyContactController,
-                  decoration: const InputDecoration(labelText: 'Emergency Contact'),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _updatePersonalInfo,
-                  child: const Text('Save & Continue'),
+                  decoration:
+                      const InputDecoration(labelText: 'Emergency Contact'),
                 ),
               ],
             ),
           ),
           Step(
             title: const Text('Vehicle Information'),
+            isActive: _currentStep >= 1,
             content: Column(
               children: [
                 TextField(
-                  controller: _makeController,
+                  controller: _vehicleMakeController,
                   decoration: const InputDecoration(labelText: 'Vehicle Make'),
                 ),
                 TextField(
-                  controller: _modelController,
-                  decoration: const InputDecoration(labelText: 'Vehicle Model'),
+                  controller: _vehicleModelController,
+                  decoration:
+                      const InputDecoration(labelText: 'Vehicle Model'),
                 ),
                 TextField(
-                  controller: _yearController,
+                  controller: _vehicleYearController,
                   decoration: const InputDecoration(labelText: 'Vehicle Year'),
                 ),
                 TextField(
                   controller: _licensePlateController,
-                  decoration: const InputDecoration(labelText: 'License Plate'),
+                  decoration:
+                      const InputDecoration(labelText: 'License Plate'),
                 ),
                 TextField(
                   controller: _colorController,
@@ -199,12 +200,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 TextField(
                   controller: _transmissionController,
-                  decoration: const InputDecoration(labelText: 'Transmission'),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _updateVehicleInfo,
-                  child: const Text('Save Changes'),
+                  decoration:
+                      const InputDecoration(labelText: 'Transmission Type'),
                 ),
               ],
             ),
@@ -212,5 +209,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _dobController.dispose();
+    _phoneController.dispose();
+    _emergencyContactController.dispose();
+    _vehicleMakeController.dispose();
+    _vehicleModelController.dispose();
+    _vehicleYearController.dispose();
+    _licensePlateController.dispose();
+    _colorController.dispose();
+    _transmissionController.dispose();
+    super.dispose();
   }
 }
