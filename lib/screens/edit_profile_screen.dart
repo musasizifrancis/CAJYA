@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String driverId;
+  late String _userId = x27x27;
 
   const EditProfileScreen({
     Key? key,
@@ -42,6 +43,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final data = await ApiService.getDriverProfile(widget.driverId);
       if (data != null) {
+      _userId = data['user_id'] ?? '';
         setState(() {
           _nameController.text = data['full_name'] as String? ?? '';
           _dobController.text = data['date_of_birth'] as String? ?? '';
@@ -67,7 +69,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updatePersonalInfo() async {
     try {
       await ApiService.updatePersonalInfo(
-        userId: widget.driverId,
+        userId: widget.userId,
         fullName: _nameController.text,
         dateOfBirth: _dobController.text,
         phoneNumber: _phoneController.text,
@@ -87,7 +89,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updateVehicleInfo() async {
     try {
       await ApiService.updateVehicleInfo(
-        userId: widget.driverId,
+        userId: widget.userId,
         vehicleMake: _makeController.text,
         vehicleModel: _modelController.text,
         vehicleYear: int.tryParse(_yearController.text) ?? 0,
