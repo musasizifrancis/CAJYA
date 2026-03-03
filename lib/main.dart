@@ -103,9 +103,9 @@ class MyApp extends StatelessWidget {
                 );
               }
             case '/edit-profile':
-      final userId = settings.arguments as String?;
+      final driverId = settings.arguments as String?;
       return MaterialPageRoute(
-        builder: (_) => EditProfileScreen(userId: userId ?? ''),
+        builder: (_) => EditProfileScreen(driverId: driverId ?? ''),
         settings: settings,
       );
             case '/documents-management':
