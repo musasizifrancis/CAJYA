@@ -94,10 +94,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         userId: widget._userId,
         vehicleMake: _vehicleMakeController.text,
         vehicleModel: _vehicleModelController.text,
-        vehicleYear: _vehicleYearController.text,
-        licensePlate: _licensePlateController.text,
+        vehicleYear: int.parse(_vehicleYearController.text),
+        vehicleLicensePlate: _licensePlateController.text,
         vehicleColor: _colorController.text,
-        transmissionType: _transmissionController.text,
+        vehicleTransmission: _transmissionController.text,
       );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vehicle info updated successfully')),
