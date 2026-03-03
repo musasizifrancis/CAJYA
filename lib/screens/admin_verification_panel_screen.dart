@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-// Build #197C: Forced rebuild to clear cache
 import 'package:intl/intl.dart';
 import '../services/admin_service.dart';
 
@@ -15,7 +14,7 @@ class _AdminVerificationPanelScreenState
     extends State<AdminVerificationPanelScreen> {
   int _selectedTabIndex = 0;
   Map<String, int> _stats = {'pending': 0, 'approved': 0, 'rejected': 0};
-  List<Map<String, dynamic>> _pendingDocuments = [];
+  List<Map<String, dynamic>> _documents = [];
   bool _isLoading = true;
   String? _error;
 
@@ -29,12 +28,21 @@ class _AdminVerificationPanelScreenState
     setState(() => _isLoading = true);
     try {
       final stats = await AdminService.getVerificationStats();
-      final docs = await AdminService.getPendingDocuments();
+      
+      List<Map<String, dynamic>> docs = [];
+      if (_selectedTabIndex == 0) {
+        docs = await AdminService.getPendingDocuments();
+      } else if (_selectedTabIndex == 1) {
+        docs = await AdminService.getApprovedDocuments();
+      } else {
+        docs = await AdminService.getRejectedDocuments();
+      }
 
       setState(() {
         _stats = stats;
-        _pendingDocuments = docs;
+        _documents = docs;
         _isLoading = false;
+        _error = null;
       });
     } catch (e) {
       setState(() {
@@ -45,6 +53,11 @@ class _AdminVerificationPanelScreenState
   }
 
   void _refreshData() {
+    _loadData();
+  }
+
+  void _onTabChanged(int index) {
+    setState(() => _selectedTabIndex = index);
     _loadData();
   }
 
@@ -91,37 +104,34 @@ class _AdminVerificationPanelScreenState
                     Material(
                       color: Colors.grey[100],
                       child: TabBar(
-                        controller: null,
-                        onTap: (index) {
-                          setState(() => _selectedTabIndex = index);
-                        },
+                        onTap: _onTabChanged,
                         tabs: [
                           Tab(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(Icons.pending_actions),
-                                const SizedBox(height: 4),
+                                const SizedBox(width: 8),
                                 Text('Pending (${_stats['pending'] ?? 0})'),
                               ],
                             ),
                           ),
                           Tab(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(Icons.check_circle),
-                                const SizedBox(height: 4),
+                                const SizedBox(width: 8),
                                 Text('Approved (${_stats['approved'] ?? 0})'),
                               ],
                             ),
                           ),
                           Tab(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(Icons.cancel),
-                                const SizedBox(height: 4),
+                                const SizedBox(width: 8),
                                 Text('Rejected (${_stats['rejected'] ?? 0})'),
                               ],
                             ),
@@ -131,7 +141,43 @@ class _AdminVerificationPanelScreenState
                     ),
                     // Documents List
                     Expanded(
-                      child: _buildDocumentsList(),
+                      child: _documents.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _selectedTabIndex == 0
+                                        ? Icons.pending_actions
+                                        : _selectedTabIndex == 1
+                                            ? Icons.check_circle
+                                            : Icons.cancel,
+                                    size: 48,
+                                    color: Colors.grey[400],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _selectedTabIndex == 0
+                                        ? 'No pending documents'
+                                        : _selectedTabIndex == 1
+                                            ? 'No approved documents'
+                                            : 'No rejected documents',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(8),
+                              itemCount: _documents.length,
+                              itemBuilder: (context, index) {
+                                final doc = _documents[index];
+                                return _buildDocumentCard(context, doc);
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -139,27 +185,27 @@ class _AdminVerificationPanelScreenState
   }
 
   Widget _buildStatsSection() {
-    return Container(
-      color: const Color(0xFF1E3A8A),
+    return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildStatCard(
             'Pending',
-            _stats['pending']?.toString() ?? '0',
+            _stats['pending'] ?? 0,
             Colors.orange,
             Icons.pending_actions,
           ),
+          const SizedBox(width: 12),
           _buildStatCard(
             'Approved',
-            _stats['approved']?.toString() ?? '0',
+            _stats['approved'] ?? 0,
             Colors.green,
             Icons.check_circle,
           ),
+          const SizedBox(width: 12),
           _buildStatCard(
             'Rejected',
-            _stats['rejected']?.toString() ?? '0',
+            _stats['rejected'] ?? 0,
             Colors.red,
             Icons.cancel,
           ),
@@ -168,88 +214,35 @@ class _AdminVerificationPanelScreenState
     );
   }
 
-  Widget _buildStatCard(
-    String label,
-    String count,
-    Color color,
-    IconData icon,
-  ) {
+  Widget _buildStatCard(String label, int count, Color color, IconData icon) {
     return Expanded(
-      child: Card(
-        elevation: 4,
-        child: Container(
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            border: Border(left: BorderSide(color: color, width: 4)),
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: color, size: 24),
-              const SizedBox(height: 8),
-              Text(
-                count,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(color: Colors.grey[700], fontSize: 12),
-              ),
-            ],
-          ),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.3)),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDocumentsList() {
-    final docs = _selectedTabIndex == 0
-        ? _pendingDocuments
-        : _selectedTabIndex == 1
-            ? _pendingDocuments.where((d) => d['verification_status'] == 'approved').toList()
-            : _pendingDocuments
-                .where((d) => d['verification_status'] == 'rejected')
-                .toList();
-
-    if (docs.isEmpty) {
-      return Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _selectedTabIndex == 0
-                  ? Icons.check_circle
-                  : Icons.inbox,
-              size: 48,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 8),
             Text(
-              _selectedTabIndex == 0
-                  ? 'No pending documents'
-                  : _selectedTabIndex == 1
-                      ? 'No approved documents'
-                      : 'No rejected documents',
-              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+              count.toString(),
+              style: TextStyle(
+                color: color,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
             ),
           ],
         ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: docs.length,
-      itemBuilder: (context, index) {
-        final doc = docs[index];
-        return _buildDocumentCard(context, doc);
-      },
+      ),
     );
   }
 
@@ -257,16 +250,14 @@ class _AdminVerificationPanelScreenState
     BuildContext context,
     Map<String, dynamic> doc,
   ) {
-    final docType = doc['document_type'] ?? 'Unknown';
-    final driverName =
-        doc['driver_profiles']?['full_name'] ?? 'Unknown Driver';
-    final status = doc['verification_status'] ?? 'pending';
-    final uploadedAt = doc['created_at'] != null
-        ? DateFormat('MMM d, yyyy').format(DateTime.parse(doc['created_at']))
-        : 'Unknown';
+    final status = doc['verification_status'] as String?;
+    final driverProfile = doc['driver_profiles'] as Map<String, dynamic>?;
+    final driverName = driverProfile?['full_name'] as String? ?? 'Unknown Driver';
+    final docType = doc['document_type'] as String? ?? 'Document';
+    final uploadedAt = doc['created_at'] as String?;
 
-    Color statusColor = Colors.orange;
-    IconData statusIcon = Icons.pending_actions;
+    Color statusColor;
+    IconData statusIcon;
 
     if (status == 'approved') {
       statusColor = Colors.green;
@@ -274,60 +265,51 @@ class _AdminVerificationPanelScreenState
     } else if (status == 'rejected') {
       statusColor = Colors.red;
       statusIcon = Icons.cancel;
+    } else {
+      statusColor = Colors.orange;
+      statusIcon = Icons.pending_actions;
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 2,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(statusIcon, color: statusColor),
-        ),
-        title: Text(
-          driverName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(docType, style: TextStyle(color: Colors.grey[700])),
-            const SizedBox(height: 4),
-            Text(uploadedAt, style: TextStyle(color: Colors.grey[600])),
-          ],
-        ),
-        trailing: Icon(Icons.arrow_forward_ios, color: Colors.grey[400]),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DocumentReviewScreen(
-                document: doc,
-                onDocumentVerified: _refreshData,
-              ),
-            ),
-          );
-        },
+        title: Text(driverName),
+        subtitle: Text('$docType • ${_formatDate(uploadedAt)}'),
+        trailing: Icon(statusIcon, color: statusColor),
+        onTap: () => _openDocumentReview(context, doc),
       ),
     );
   }
+
+  void _openDocumentReview(
+    BuildContext context,
+    Map<String, dynamic> doc,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DocumentReviewScreen(document: doc),
+      ),
+    );
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return '';
+    try {
+      final date = DateTime.parse(dateStr);
+      return DateFormat('MMM dd, yyyy').format(date);
+    } catch (e) {
+      return dateStr;
+    }
+  }
 }
 
-// Document Review Screen
 class DocumentReviewScreen extends StatefulWidget {
   final Map<String, dynamic> document;
-  final VoidCallback onDocumentVerified;
 
   const DocumentReviewScreen({
     Key? key,
     required this.document,
-    required this.onDocumentVerified,
   }) : super(key: key);
 
   @override
@@ -335,53 +317,38 @@ class DocumentReviewScreen extends StatefulWidget {
 }
 
 class _DocumentReviewScreenState extends State<DocumentReviewScreen> {
-  late TextEditingController _rejectionReasonController;
-  bool _isProcessing = false;
-  String? _selectedRejectionReason;
+  late String _selectedReason;
+  final TextEditingController _customReasonController = TextEditingController();
+  bool _isSubmitting = false;
 
-  final List<String> _commonRejectionReasons = [
-    'Document is blurry or unclear',
-    'Document is expired',
-    'Missing required information',
-    'Document does not match profile',
-    'Poor photo quality',
-    'Other (specify below)',
+  final List<String> _rejectionReasons = [
+    'Image too blurry',
+    'Document expired',
+    'Information mismatch',
+    'Document not fully visible',
+    'Wrong document type',
+    'Custom reason',
   ];
 
   @override
   void initState() {
     super.initState();
-    _rejectionReasonController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _rejectionReasonController.dispose();
-    super.dispose();
+    _selectedReason = _rejectionReasons.first;
   }
 
   Future<void> _approveDocument() async {
-    setState(() => _isProcessing = true);
+    setState(() => _isSubmitting = true);
     try {
+      final docId = widget.document['id'] as String;
       await AdminService.approveDocument(
-        documentId: widget.document['id'],
-        verifiedBy: 'admin_user',
-      );
-
-      // Send notification to driver
-      await AdminService.sendNotificationToDriver(
-        driverId: widget.document['driver_id'],
-        title: 'Document Approved ✅',
-        message:
-            '${widget.document['document_type']} has been approved. Great job!',
-        metadata: {'documentId': widget.document['id']},
+        documentId: docId,
+        verifiedBy: 'admin',
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document approved successfully')),
+          const SnackBar(content: Text('Document approved')),
         );
-        widget.onDocumentVerified();
         Navigator.pop(context);
       }
     } catch (e) {
@@ -391,48 +358,37 @@ class _DocumentReviewScreenState extends State<DocumentReviewScreen> {
         );
       }
     } finally {
-      setState(() => _isProcessing = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 
   Future<void> _rejectDocument() async {
-    if (_rejectionReasonController.text.isEmpty &&
-        _selectedRejectionReason == null) {
+    final reason = _selectedReason == 'Custom reason'
+        ? _customReasonController.text
+        : _selectedReason;
+
+    if (reason.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please provide a rejection reason')),
       );
       return;
     }
 
-    setState(() => _isProcessing = true);
+    setState(() => _isSubmitting = true);
     try {
-      final reason = _selectedRejectionReason == 'Other (specify below)'
-          ? _rejectionReasonController.text
-          : (_selectedRejectionReason ?? '');
-
+      final docId = widget.document['id'] as String;
       await AdminService.rejectDocument(
-        documentId: widget.document['id'],
+        documentId: docId,
+        verifiedBy: 'admin',
         rejectionReason: reason,
-        rejectedBy: 'admin_user',
-      );
-
-      // Send notification to driver
-      await AdminService.sendNotificationToDriver(
-        driverId: widget.document['driver_id'],
-        title: 'Document Rejected ❌',
-        message:
-            '${widget.document['document_type']} needs to be resubmitted. Reason: $reason',
-        metadata: {
-          'documentId': widget.document['id'],
-          'rejectionReason': reason,
-        },
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Document rejected')),
         );
-        widget.onDocumentVerified();
         Navigator.pop(context);
       }
     } catch (e) {
@@ -442,71 +398,169 @@ class _DocumentReviewScreenState extends State<DocumentReviewScreen> {
         );
       }
     } finally {
-      setState(() => _isProcessing = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final status = widget.document['verification_status'] as String?;
+    final driverProfile = widget.document['driver_profiles'] as Map<String, dynamic>?;
+    final driverName = driverProfile?['full_name'] as String? ?? 'Unknown';
+    final docType = widget.document['document_type'] as String? ?? 'Document';
+    final documentUrl = widget.document['document_url'] as String?;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Review Document'),
+        backgroundColor: const Color(0xFF1E3A8A),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Document Info
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Driver: $driverName',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Document: $docType'),
+                    const SizedBox(height: 8),
+                    Chip(
+                      label: Text(status ?? 'Unknown'),
+                      backgroundColor: _getStatusColor(status),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Document Preview
+            if (documentUrl != null) ...[
+              const Text(
+                'Document Preview',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Image.network(
+                  documentUrl,
+                  fit: BoxFit.cover,
+                  height: 300,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 300,
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: Text('Document preview unavailable'),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
+            // Action Buttons
+            if (status == 'pending') ...[
+              const Text(
+                'Verification Action',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isSubmitting ? null : _approveDocument,
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('Approve Document'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isSubmitting ? null : _showRejectDialog,
+                  icon: const Icon(Icons.cancel),
+                  label: const Text('Reject Document'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ] else
+              Card(
+                color: Colors.grey[100],
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'This document has already been ${status?.toUpperCase()}.',
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showRejectDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         title: const Text('Reject Document'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Select or provide a rejection reason:',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
+              const Text('Select a reason:'),
               const SizedBox(height: 12),
-              ..._commonRejectionReasons.map((reason) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedRejectionReason = reason);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: _selectedRejectionReason == reason
-                              ? const Color(0xFF1E3A8A)
-                              : Colors.grey[300]!,
-                          width: 2,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Radio<String>(
-                            value: reason,
-                            groupValue: _selectedRejectionReason,
-                            onChanged: (val) {
-                              setState(() => _selectedRejectionReason = val);
-                            },
-                          ),
-                          Expanded(child: Text(reason)),
-                        ],
-                      ),
-                    ),
-                  ),
+              ..._rejectionReasons.map((reason) {
+                return RadioListTile<String>(
+                  title: Text(reason),
+                  value: reason,
+                  groupValue: _selectedReason,
+                  onChanged: (value) {
+                    setState(() => _selectedReason = value!);
+                    Navigator.pop(context);
+                    _showRejectDialog();
+                  },
                 );
-              }).toList(),
-              const SizedBox(height: 12),
-              if (_selectedRejectionReason == 'Other (specify below)')
+              }),
+              if (_selectedReason == 'Custom reason') ...[
+                const SizedBox(height: 12),
                 TextField(
-                  controller: _rejectionReasonController,
-                  decoration: InputDecoration(
-                    hintText: 'Please specify the reason...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  controller: _customReasonController,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter custom reason',
+                    border: OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
+              ],
             ],
           ),
         ),
@@ -516,13 +570,8 @@ class _DocumentReviewScreenState extends State<DocumentReviewScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: _isProcessing ? null : () {
-              Navigator.pop(context);
-              _rejectDocument();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            onPressed: _isSubmitting ? null : _rejectDocument,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Reject'),
           ),
         ],
@@ -530,269 +579,16 @@ class _DocumentReviewScreenState extends State<DocumentReviewScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final status = widget.document['verification_status'] ?? 'pending';
-    final docType = widget.document['document_type'] ?? 'Unknown';
-    final driverName =
-        widget.document['driver_profiles']?['full_name'] ?? 'Unknown';
-    final uploadedAt = widget.document['created_at'] != null
-        ? DateFormat('MMM d, yyyy HH:mm')
-            .format(DateTime.parse(widget.document['created_at']))
-        : 'Unknown';
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Review Document'),
-        elevation: 0,
-        backgroundColor: const Color(0xFF1E3A8A),
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Document Info Card
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    docType,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Driver: $driverName',
-                                    style: TextStyle(
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Uploaded: $uploadedAt',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: status == 'pending'
-                                    ? Colors.orange[100]
-                                    : status == 'approved'
-                                        ? Colors.green[100]
-                                        : Colors.red[100],
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                status.toUpperCase(),
-                                style: TextStyle(
-                                  color: status == 'pending'
-                                      ? Colors.orange[800]
-                                      : status == 'approved'
-                                          ? Colors.green[800]
-                                          : Colors.red[800],
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Document Preview
-                Card(
-                  elevation: 2,
-                  child: Container(
-                    width: double.infinity,
-                    height: 300,
-                    color: Colors.grey[200],
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.image, size: 64, color: Colors.grey[400]),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Document Preview\n(${widget.document['file_path'] ?? 'No file path'})',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Rejection Reason (if applicable)
-                if (status == 'rejected' && widget.document['rejection_reason'] != null)
-                  Card(
-                    color: Colors.red[50],
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.cancel, color: Colors.red[700]),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Rejection Reason',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(widget.document['rejection_reason']),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // Metadata
-                const SizedBox(height: 16),
-                Card(
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Document Details',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildDetailRow('Document Type', docType),
-                        _buildDetailRow('Driver Name', driverName),
-                        _buildDetailRow(
-                          'Document ID',
-                          widget.document['id']?.substring(0, 8) ?? 'N/A',
-                        ),
-                        _buildDetailRow('Status', status.toUpperCase()),
-                        if (widget.document['verified_at'] != null)
-                          _buildDetailRow(
-                            'Verified At',
-                            DateFormat('MMM d, yyyy HH:mm').format(
-                              DateTime.parse(widget.document['verified_at']),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 80),
-              ],
-            ),
-          ),
-
-          // Action Buttons
-          if (status == 'pending')
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed:
-                            _isProcessing ? null : _showRejectDialog,
-                        icon: const Icon(Icons.close),
-                        label: const Text('Reject'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed:
-                            _isProcessing ? null : _approveDocument,
-                        icon: const Icon(Icons.check_circle),
-                        label: const Text('Approve'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(color: Colors.grey[700]),
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'approved':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      case 'pending':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
   }
 }
