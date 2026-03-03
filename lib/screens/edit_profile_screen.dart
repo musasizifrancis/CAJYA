@@ -67,7 +67,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updatePersonalInfo() async {
     try {
       await ApiService.updatePersonalInfo(
-        userId: widget.userId,
+        userId: widget.driverId,
         fullName: _nameController.text,
         dateOfBirth: _dobController.text,
         phoneNumber: _phoneController.text,
@@ -87,7 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updateVehicleInfo() async {
     try {
       await ApiService.updateVehicleInfo(
-        userId: widget.userId,
+        userId: widget.driverId,
         vehicleMake: _makeController.text,
         vehicleModel: _modelController.text,
         vehicleYear: int.tryParse(_yearController.text) ?? 0,
