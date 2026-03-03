@@ -480,7 +480,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditProfileScreen(userId: _userId!),
+                        builder: (context) => EditProfileScreen(driverId: _driverId!),
                       ),
                     );
                   },
