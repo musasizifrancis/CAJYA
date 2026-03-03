@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  final String userId;
+  final String driverId;
 
   const EditProfileScreen({
     Key? key,
-    required this.userId,
+    required this.driverId,
   }) : super(key: key);
 
   @override
@@ -40,7 +40,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _loadProfile() async {
     try {
-      final data = await ApiService.getDriverProfile(widget.userId);
+      final data = await ApiService.getDriverProfile(widget.driverId);
       if (data != null) {
         setState(() {
           _nameController.text = data['full_name'] as String? ?? '';
